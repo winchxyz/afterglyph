@@ -42,6 +42,14 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
 .tpl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .tpl button{font-family:var(--mono);font-size:11px;letter-spacing:.03em;padding:6px 4px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
 .tpl button[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
+.tpl button.primary{color:var(--accent-ink)}
+details.group > summary{cursor:pointer;font-weight:600;letter-spacing:.01em;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.group > summary::-webkit-details-marker{display:none}
+details.group > summary::after{content:"+";font-family:var(--mono);color:var(--muted)}
+details.group[open] > summary::after{content:"\2212"}
+details.group > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hint{margin:-4px 0 2px;font-size:11.5px;line-height:1.4;color:var(--muted)}
+input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;min-width:0}
 #stage.turn{cursor:grab;touch-action:none}
 #stage.turn:active{cursor:grabbing}
 @media (max-width:760px){
@@ -61,7 +69,7 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
   <aside class="panel">
     <div>
       <h1>Glyph Bloom</h1>
-      <p class="lede">Turns an image, GIF or short video into glowing glyph art. Drop a file on the stage or open one.</p>
+      <p class="lede">Turns an image, GIF or short video into glowing glyph art with its own soundtrack. Drop a file on the stage or pick a template.</p>
     </div>
 
     <div class="group">
@@ -71,16 +79,39 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
       <div class="tpl" id="tpl" role="group" aria-label="Templates"></div>
     </div>
 
-    <div class="group">
-      <label class="t" for="three"><input type="checkbox" id="three"> 3D object</label>
-      <label class="t" for="spin"><input type="checkbox" id="spin" checked> Turn by itself</label>
-      <p class="meta" id="turnhint">Drag the stage to turn it. Scroll to zoom.</p>
-    </div>
+    <details class="group" open>
+      <summary>Look</summary>
+      <p class="hint">A look sets the characters, colour and screen effects in one click. Fine-tune below.</p>
+      <div class="tpl" id="looks" role="group" aria-label="Looks"></div>
+    </details>
 
-    <div class="group">
-      <label class="f" for="density">Density <input type="range" id="density" min="80" max="220" step="2" value="146"></label>
-      <label class="f" for="glow">Glow <input type="range" id="glow" min="0" max="2" step="0.05" value="1"></label>
-      <label class="f" for="palette">Colour <select id="palette">
+    <details class="group">
+      <summary>Characters</summary>
+      <label class="f" for="charset">Set <select id="charset" data-k="charset">
+        <option value="signal">Signal (mixed symbols)</option>
+        <option value="ascii">Classic ASCII  .:-=+*#%@</option>
+        <option value="dense">Full ASCII (70 characters)</option>
+        <option value="dots">Halftone dots</option>
+        <option value="blocks">Shade blocks</option>
+        <option value="lines">Lines only</option>
+        <option value="digits">Digits 0-9</option>
+        <option value="binary">Binary 0 1</option>
+        <option value="custom">Your own characters</option>
+      </select></label>
+      <label class="f" for="custom" id="customRow" hidden>Yours <input type="text" id="custom" data-k="custom" maxlength="48" value=" .oO0@#" spellcheck="false" autocomplete="off"></label>
+      <p class="hint" id="customHint" hidden>Type any characters. They are sorted from lightest to heaviest automatically.</p>
+      <label class="f" for="density">Size <input type="range" id="density" data-k="density" min="60" max="240" step="2" value="146"></label>
+      <p class="hint">Characters per row. Left: big and chunky. Right: small and detailed.</p>
+      <label class="f" for="strokes">Edge lines <input type="range" id="strokes" data-k="strokes" min="0" max="2" step="0.05" value="1"></label>
+      <p class="hint">How much of the picture is drawn with / \ | = strokes that follow edges and texture.</p>
+      <label class="f" for="shimmer">Shimmer <input type="range" id="shimmer" data-k="shimmer" min="0" max="3" step="0.1" value="1"></label>
+      <p class="hint">How many characters keep changing. 0 holds the picture still.</p>
+      <label class="t" for="outline"><input type="checkbox" id="outline" data-k="outline" checked> Thin outline around the subject</label>
+    </details>
+
+    <details class="group">
+      <summary>Colour and screen</summary>
+      <label class="f" for="palette">Colour <select id="palette" data-k="palette">
         <option value="source">From the file</option>
         <option value="night">Night blue</option>
         <option value="phosphor">Phosphor</option>
@@ -88,33 +119,77 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
         <option value="rose">Rose</option>
         <option value="mono">Silver</option>
       </select></label>
-      <label class="f" for="bg">Background <select id="bg">
-        <option value="auto">Auto</option>
-        <option value="none">Keep everything</option>
-        <option value="dark">Remove dark</option>
-        <option value="light">Remove light</option>
-      </select></label>
-      <label class="f" for="tol">Cut-off <input type="range" id="tol" min="0.03" max="0.6" step="0.01" value="0.16"></label>
-      <label class="t" for="invert"><input type="checkbox" id="invert"> Invert brightness</label>
-    </div>
+      <label class="f" for="sat">Vividness <input type="range" id="sat" data-k="sat" min="0" max="2.6" step="0.05" value="1.5"></label>
+      <p class="hint">Colour strength when the colour comes from the file. 0 is grey.</p>
+      <label class="f" for="contrast">Contrast <input type="range" id="contrast" data-k="contrast" min="0.4" max="2.5" step="0.05" value="1"></label>
+      <p class="hint">Pushes dark parts darker and bright parts brighter, so fewer mid characters.</p>
+      <label class="f" for="glow">Glow <input type="range" id="glow" data-k="glow" min="0" max="2" step="0.05" value="1"></label>
+      <p class="hint">The soft light around bright characters.</p>
+      <label class="f" for="scan">Scanlines <input type="range" id="scan" data-k="scan" min="0" max="1" step="0.05" value="0"></label>
+      <label class="f" for="grain">Grain <input type="range" id="grain" data-k="grain" min="0" max="4" step="0.1" value="1"></label>
+      <label class="f" for="fringe">Lens fringe <input type="range" id="fringe" data-k="fringe" min="0" max="4" step="0.1" value="1"></label>
+      <p class="hint">Old-screen effects: dark rows, film noise, and colour split toward the corners.</p>
+      <label class="t" for="paper"><input type="checkbox" id="paper" data-k="paper"> Ink on paper (light background)</label>
+    </details>
 
-    <div class="group">
-      <label class="t" for="intro"><input type="checkbox" id="intro" checked> Grow-in intro</label>
-      <label class="t" for="camera"><input type="checkbox" id="camera" checked> Camera moves</label>
-      <label class="t" for="hud"><input type="checkbox" id="hud" checked> Readouts</label>
-      <label class="f" for="format">Frame <select id="format">
+    <details class="group">
+      <summary>Subject</summary>
+      <label class="f" for="bg">Background <select id="bg" data-k="bg">
+        <option value="auto">Auto</option>
+        <option value="none">Keep the whole picture</option>
+        <option value="dark">Remove dark background</option>
+        <option value="light">Remove light background</option>
+      </select></label>
+      <p class="meta" id="bgnote"></p>
+      <label class="f" for="tol" id="tolRow">Cut strength <input type="range" id="tol" data-k="tol" min="0.03" max="0.6" step="0.01" value="0.16"></label>
+      <p class="hint" id="tolHint">How close to the background colour a pixel must be to get removed. Right removes more (cleaner edge, may eat the subject). Left keeps more.</p>
+      <label class="t" for="showMask"><input type="checkbox" id="showMask" data-k="showMask"> Show what is kept</label>
+      <p class="hint">Fills everything that counts as the subject with solid blocks, so you can see the cut.</p>
+      <label class="t" for="invert"><input type="checkbox" id="invert" data-k="invert"> Swap light and dark</label>
+      <p class="hint">Use for dark drawings on a light background.</p>
+    </details>
+
+    <details class="group">
+      <summary>Motion and 3D</summary>
+      <label class="t" for="intro"><input type="checkbox" id="intro" data-k="intro" checked> Grow-in intro</label>
+      <label class="t" for="camera"><input type="checkbox" id="camera" data-k="camera" checked> Camera moves</label>
+      <label class="t" for="hud"><input type="checkbox" id="hud" data-k="hud" checked> Readouts</label>
+      <label class="t" for="three"><input type="checkbox" id="three" data-k="three"> 3D object</label>
+      <label class="t" for="spin"><input type="checkbox" id="spin" data-k="spin" checked> Turn by itself</label>
+      <p class="hint" id="turnhint">Drag the stage to turn it. Scroll to zoom.</p>
+    </details>
+
+    <details class="group" open>
+      <summary>Soundtrack</summary>
+      <div class="row">
+        <button id="play">Play soundtrack</button>
+        <button id="vary">New variation</button>
+      </div>
+      <p class="meta" id="score">Composed from the art when you press play.</p>
+      <label class="f" for="mood">Mood <select id="mood" data-k="mood">
+        <option value="auto">Auto, from the art</option>
+        <option value="calm">Calm</option>
+        <option value="bright">Bright</option>
+        <option value="dark">Dark</option>
+        <option value="pulse">Pulse (with drums)</option>
+      </select></label>
+      <label class="f" for="volume">Volume <input type="range" id="volume" data-k="volume" min="0" max="1" step="0.01" value="0.8"></label>
+      <p class="hint">Colour picks the key, brightness the mode, detail the tempo. The intro, ruler ticks, trackers and pulses each have a sound. Recorded videos include it.</p>
+      <button id="wav">Save soundtrack (WAV)</button>
+    </details>
+
+    <details class="group" open>
+      <summary>Export</summary>
+      <label class="f" for="format">Frame <select id="format" data-k="format">
         <option value="4:5">4:5 portrait</option>
         <option value="1:1">1:1 square</option>
         <option value="9:16">9:16 story</option>
         <option value="16:9">16:9 wide</option>
       </select></label>
-      <label class="f" for="res">Sharpness <select id="res">
+      <label class="f" for="res">Sharpness <select id="res" data-k="res">
         <option value="1">1× (1024 px)</option>
         <option value="2" selected>2× (2048 px)</option>
       </select></label>
-    </div>
-
-    <div class="group">
       <div class="row">
         <button id="replay">Replay</button>
         <button id="png">Save PNG</button>
@@ -129,7 +204,7 @@ input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
         </select>
       </div>
       <p class="meta" id="status" aria-live="polite"></p>
-    </div>
+    </details>
   </aside>
 </div>
 
@@ -197,8 +272,9 @@ function drawText(g, s, x, y, u, align) {
 const G = { SP:0, DOT:1, DASH:2, EQ:3, VB:4, VV:5, SL:6, BS:7, SLB:8, BSB:9, TIL:10, X:11, PLUS:12, ROOT:13, PI:14, DELTA:15,
   ZERO:16, RING:17, EYE:18, DISC:19, BLOCK:20, BARV:21, BARH:22, COLON:23, LOW:24, HIGH:25, D0:32 };
 const TW = 28, TH = 36, TU = 4;
+const atlasCan = document.createElement('canvas');
 function buildAtlas() {
-  const c = document.createElement('canvas'); c.width = TW * 8; c.height = TH * 8;
+  const c = atlasCan; c.width = TW * 8; c.height = TH * 16;
   const g = c.getContext('2d');
   g.fillStyle = '#000'; g.fillRect(0, 0, c.width, c.height);
   g.fillStyle = '#fff'; g.strokeStyle = '#fff'; g.lineCap = 'round'; g.lineJoin = 'round';
@@ -232,11 +308,14 @@ function buildAtlas() {
   at(G.LOW, () => line(thin, 1.1, 7.6, 5.9, 7.6));
   at(G.HIGH, () => line(thin, 1.1, 1.4, 5.9, 1.4));
   for (let d = 0; d < 10; d++) at(G.D0 + d, () => { const runs = FONT_RUNS[String(d)]; for (const r of runs) g.fillRect(1 + r[0] - 0.04, 1 + r[1] - 0.04, r[2] + 0.08, 1.08); });
+  const shade = [(x, y) => (x % 4 === 0 && y % 4 === 0) || (x % 4 === 2 && y % 4 === 2), (x, y) => x % 2 === 0 && y % 2 === 0, (x, y) => (x + y) % 2 === 0, (x, y) => !(x % 2 === 1 && y % 2 === 1), () => true];
+  shade.forEach((fn, i) => at(44 + i, () => { for (let y = 0; y < 9; y++) for (let x = 0; x < 7; x++) if (fn(x, y)) g.fillRect(x - 0.02, y - 0.02, 1.04, 1.04); }));
+  [0.6, 1.0, 1.4, 1.8, 2.3, 2.8, 3.4, 4.1].forEach((r, i) => at(50 + i, () => { g.beginPath(); g.ellipse(3.5, 4.5, r, r * 1.12, 0, 0, 7); g.fill(); }));
   return c;
 }
 
 /* ------------------------------------------------------------------ parameters and state */
-const P = { density:146, glow:1, palette:'source', bg:'auto', tol:0.16, invert:false, intro:true, camera:true, hud:true, format:'4:5', res:2, three:false, spin:true };
+const P = { density:146, glow:1, palette:'source', bg:'auto', tol:0.16, invert:false, intro:true, camera:true, hud:true, format:'4:5', res:2, three:false, spin:true, look:'signal', charset:'signal', custom:' .oO0@#', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, scan:0, grain:1, fringe:1, paper:false, showMask:false, mood:'auto', volume:0.8, variation:0 };
 const PALETTES = {
   night:    { ramp:['#3b37d6','#7f8cff','#e8ebff'], accent:'#63e6b4', label:'GECE-MAVISI' },
   phosphor: { ramp:['#0c7a3e','#39e27d','#e2ffe9'], accent:'#b8ffd0', label:'PHOSPHOR' },
@@ -253,7 +332,7 @@ const acan = document.createElement('canvas'); let actx = null;
 const hudCan = document.createElement('canvas'); let hctx = null;
 let src = null, base = null, relief = null;
 const st = { time:0, R:0, lo:0, hi:1, levelsInit:false, bg:{ mode:'alpha', key:[0,0,0] }, revealDirty:true, crop:{ x:0, y:0, w:1, h:1 }, finalTop:0, finalBase:0,
-  ticks:[], nextTick:0.05, tracker:null, parts:[], nextBurst:0, pulse:null, nextPulse:0, anchor:null, stats:null, picks:[], avg:[143,155,255] };
+  ticks:[], nextTick:0.05, tracker:null, parts:[], nextBurst:0, pulse:null, nextPulse:0, anchor:null, stats:null, picks:[], avg:[143,155,255], cs:{ mode:'signal' }, profile:{ l:0.5, e:0.4 } };
 
 /* ------------------------------------------------------------------ WebGL */
 const canvas = $('stage');
@@ -268,7 +347,7 @@ void main(){
   vec2 g=vUv*uGrid; ivec2 c=ivec2(clamp(floor(g),vec2(0.),uGrid-1.)); vec2 f=fract(g);
   vec4 a=texelFetch(uA,c,0); float idx=floor(texelFetch(uB,c,0).r*255.+.5);
   vec2 tile=vec2(mod(idx,8.),floor(idx/8.));
-  float m=textureGrad(uAtlas,(tile+f)/8.,dFdx(g)/8.,dFdy(g)/8.).r;
+  vec2 ts=vec2(8.,16.); float m=textureGrad(uAtlas,(tile+f)/ts,dFdx(g)/ts,dFdy(g)/ts).r;
   vec3 col=a.rgb*a.a*m*1.5;
   col=max(col,texture(uHud,vUv).rgb);
   o=vec4(col,1.);
@@ -283,19 +362,27 @@ void main(){
 }`;
 const FS_COMP = `#version 300 es
 precision highp float; in vec2 vUv; out vec4 o;
-uniform sampler2D uBase,uB1,uB2,uB3,uB4; uniform float uGlow,uTime;
+uniform sampler2D uBase,uB1,uB2,uB3,uB4; uniform float uGlow,uTime,uScan,uGrain,uFringe,uPaper,uRows;
 float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
 void main(){
   vec2 d=vUv-.5; float r2=dot(d,d);
-  vec2 off=d*(.0005+.0018*r2);
+  vec2 off=d*(.0005+.0018*r2)*uFringe;
   vec3 base=vec3(texture(uBase,vUv+off).r,texture(uBase,vUv).g,texture(uBase,vUv-off).b);
   vec3 b1=vec3(texture(uB1,vUv+off*2.).r,texture(uB1,vUv).g,texture(uB1,vUv-off*2.).b);
   vec3 bl=b1*.34+texture(uB2,vUv).rgb*.3+texture(uB3,vUv).rgb*.24+texture(uB4,vUv).rgb*.18;
   vec3 col=base+bl*uGlow;
   col=1.-exp(-col*1.25);
-  col+=vec3(.006,.008,.02)*(1.-r2*1.6);
-  col*=1.-r2*.55;
-  col+=(h(vUv*vec2(1387.,1931.)+fract(uTime)*7.)-.5)*.012;
+  col*=(1.+uScan*.3)*(1.-uScan*.45*(.5+.5*cos(vUv.y*uRows*2.0944)));
+  float n=h(vUv*vec2(1387.,1931.)+fract(uTime)*7.)-.5;
+  if(uPaper>.5){
+    float mx=max(col.r,max(col.g,col.b)), a=clamp(mx*1.25,0.,1.);
+    vec3 paper=vec3(.93,.9,.84)*(1.-r2*.22);
+    col=mix(paper,col/max(mx,.001)*.2,a)+n*.03*uGrain;
+  } else {
+    col+=vec3(.006,.008,.02)*(1.-r2*1.6);
+    col*=1.-r2*.55;
+    col+=n*.012*uGrain;
+  }
   o=vec4(max(col,0.),1.);
 }`;
 function shader(type, s) { const x = gl.createShader(type); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; }
@@ -603,7 +690,7 @@ function render3(obj, t) {
   const yaw = orbit.yaw + (obj.spinFull ? orbit.phase * 0.5 : 0.62 * Math.sin(orbit.phase * 0.55)), pitch = orbit.pitch;
   const c = Math.cos(yaw), s = Math.sin(yaw), cx = Math.cos(pitch), sx = Math.sin(pitch);
   const R = [[c, 0, s], [sx * s, cx, -sx * c], [-cx * s, sx, cx * c]];
-  const f = 1 / Math.tan(14 * RAD), near = 0.5, far = 20, A = (far + near) / (near - far), B = 2 * far * near / (near - far), dist = 4.5 / orbit.zoom;
+  const f = 1 / Math.tan(14 * RAD), near = 0.5, far = 20, A = (far + near) / (near - far), B = 2 * far * near / (near - far), dist = 4.5 * MESH_ROOM / orbit.zoom;
   const mvp = new Float32Array(16);
   for (let j = 0; j < 3; j++) { mvp[j * 4] = f / 0.8 * R[0][j]; mvp[j * 4 + 1] = f * R[1][j]; mvp[j * 4 + 2] = A * R[2][j]; mvp[j * 4 + 3] = -R[2][j]; }
   mvp[14] = -A * dist + B; mvp[15] = dist;
@@ -856,7 +943,8 @@ function analyzeSource(src) {
 }
 
 /* ------------------------------------------------------------------ camera + drawing the source into the analysis grid */
-const CAM_KEYS = [[0, .6], [2, .6], [4, 1], [26, 1], [27.5, .6], [29.5, .8], [44, .8], [46, .6]];
+const MESH_ROOM = 1.3;
+const CAM_KEYS =[[0, .6], [2, .6], [4, 1], [26, 1], [27.5, .6], [29.5, .8], [44, .8], [46, .6]];
 function camZoom(t) {
   if (!P.camera) return 1;
   if (t < st.R) return 0.6;
@@ -868,9 +956,10 @@ function drawSource(t, grow, zoom, still) {
   actx.setTransform(1, 0, 0, 1, 0, 0); actx.clearRect(0, 0, aw, ah);
   const full = st.bg.mode === 'none';
   const cr = st.crop;
-  let fit = full ? Math.max(W0 / src.w, H0 / src.h) : Math.min(W0 * 0.9 / cr.w, H0 * 0.9 / cr.h) * (src.kind === 'iris' || src.kind === 'mesh' ? 0.95 / 0.9 : 1);
+  // everything is fitted inside the frame, never cropped: whole pictures are contained, a 3D object is rendered with spare room around it
+  let fit = full ? Math.min(W0 / src.w, H0 / src.h) : Math.min(W0 * 0.9 / cr.w, H0 * 0.9 / cr.h) * (src.kind === 'mesh' ? 0.95 / 0.9 * MESH_ROOM : src.kind === 'iris' ? 0.95 / 0.9 : 1);
   let z = zoom, oy = (zoom - 0.6) / 0.4 * 0.04 * H0 - 0.02 * H0;
-  if (full) { z = 1 + (zoom - 0.6) / 0.4 * 0.22; oy = 0; }
+  if (full) { z = 0.8 + (zoom - 0.6) / 0.4 * 0.17; oy = 0; }
   if (!P.camera) oy = 0;
   actx.scale(aw / W0, ah / H0);
   actx.translate(W0 / 2, H0 / 2 + oy); actx.scale(z, z);
@@ -928,6 +1017,7 @@ function computeReveal() {
   for (let cy = 0; cy < rows; cy++) for (let cx = 0; cx < cols; cx++) if (Cm[cy * cols + cx] >= 0.3) { if (cy < top) top = cy; if (cy > base) { base = cy; seedX = 0; seedN = 0; } if (cy === base) { seedX += cx; seedN++; } }
   if (base < 0) { top = 0; base = rows - 1; }
   st.finalTop = top; st.finalBase = base;
+  { let l = 0, e = 0, k = 0; for (let c = 0; c < nc; c++) if (Cm[c] >= 0.3) { l += Cl[c]; e += Math.min(1, Math.sqrt(Kxx[c] + Kyy[c]) * 9); k++; } st.profile = k ? { l: l / k, e: e / k } : { l: 0.5, e: 0.4 }; }
   if (src.selfGrow) { Dist.fill(0); return; }
   Dist.fill(-1);
   let queue = new Int32Array(nc), qh = 0, qt = 0, maxD = 1;
@@ -972,7 +1062,7 @@ function compose(t) {
   lo = st.lo; hi = Math.max(st.hi, lo + 0.1);
   const tickA = Math.floor(t * 7), tickD = Math.floor(t * 11);
   const pulse = st.pulse && t - st.pulse.t0 < 2.2 ? st.pulse : null, pr = pulse ? (t - pulse.t0) * 62 : 0;
-  let sm = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, top = rows, topX = 0, topN = 0, base = -1, baseX = 0, baseN = 0, minX = cols, maxX = 0, maxL = 0, coh = 0;
+  let sm = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, top = rows, topX = 0, topN = 0, base = -1, baseX = 0, baseN = 0, minX = cols, maxX = 0, maxL = 0, coh = 0, enSum = 0, lSum = 0;
   const picks = st.picks; picks.length = 0; let seen = 0;
   for (let cy = 0; cy < rows; cy++) for (let cx = 0; cx < cols; cx++) {
     const c = cy * cols + cx, o = c * 4, m = Cm[c];
@@ -983,25 +1073,29 @@ function compose(t) {
       if (src.digitAlpha && m > 0.96 && Ca[c] < 0.8) digit = true;
       if (vis > 0) {
         Vis[c] = 1;
-        let L = flat ? 0.7 : clamp((Cl[c] - lo) / (hi - lo), 0, 1); L = Math.pow(L, 0.85);
+        let L = flat ? 0.7 : clamp((Cl[c] - lo) / (hi - lo), 0, 1); L = Math.pow(clamp((L - 0.5) * P.contrast + 0.5, 0, 1), 0.85);
         if (pulse) { const dx = (cx - pulse.cx), dy = (cy - pulse.cy) * 1.28, w = 1 - Math.abs(Math.sqrt(dx * dx + dy * dy) - pr) / 7; if (w > 0) L = Math.min(1, L + w * 0.45 * (1 - (t - pulse.t0) / 2.2)); }
         const a = Kxx[c], b = Kyy[c], e = Kxy[c], tr = a + b, df = a - b;
         const en = Math.min(1, Math.sqrt(tr) * 9), ch = tr > 1e-7 ? Math.sqrt(df * df + 4 * e * e) / tr : 0;
-        const hs = hash(cx, cy, 7), hv = hash(cx, cy, hs < 0.2 ? tickA + 11 : 11);
+        const hs = hash(cx, cy, 7), hv = hash(cx, cy, hs < 0.2 * P.shimmer ? Math.floor(t * 7 * Math.max(1, P.shimmer)) + 11 : 11), es = en * P.strokes, CS = st.cs;
         if (digit) { glyph = G.D0 + ((hash(cx, cy, tickD + ((hs * 5) | 0)) * 10) | 0); I = 0.32 + 0.68 * L; }
         else {
           const q = (Math.round((0.5 * Math.atan2(2 * e, df) + Math.PI / 2) / (Math.PI / 4)) % 4 + 4) % 4;
-          if (en > 0.5 && ch > 0.42) { glyph = L > 0.72 && (q === 0 || q === 2) ? (q ? G.BARV : G.BARH) : DIR_BOLD[q]; I = 0.38 + 0.62 * L; stroke = true; }
-          else if (en > 0.2 && ch > 0.45 && L < 0.8) { glyph = (q === 0 && L > 0.42) ? G.EQ : (q === 2 && L > 0.42) ? G.VV : DIR_THIN[q]; I = 0.13 + 0.7 * L; stroke = true; }
-          else { const Lr = L + (hv - 0.5) * 0.14; let k = 0; while (k < 7 && Lr >= RAMP_AT[k]) k++; const R = RAMPS[k]; glyph = R[(hv * 977 % 1 * R.length) | 0]; I = 0.1 + 0.9 * Math.pow(L, 1.35); }
-          coh += ch;
+          if (CS.mode === 'lines') { if (L > 0.07 || es > 0.3) { glyph = L > 0.6 ? DIR_BOLD[q] : DIR_THIN[q]; I = 0.2 + 0.8 * L; stroke = true; } }
+          else if (es > 0.5 && ch > 0.42) { glyph = L > 0.72 && (q === 0 || q === 2) ? (q ? G.BARV : G.BARH) : DIR_BOLD[q]; I = 0.38 + 0.62 * L; stroke = true; }
+          else if (es > 0.2 && ch > 0.45 && L < 0.8) { glyph = (q === 0 && L > 0.42) ? G.EQ : (q === 2 && L > 0.42) ? G.VV : DIR_THIN[q]; I = 0.13 + 0.7 * L; stroke = true; }
+          else if (CS.mode === 'signal') { const Lr = L + (hv - 0.5) * 0.14; let k = 0; while (k < 7 && Lr >= RAMP_AT[k]) k++; const R = RAMPS[k]; glyph = R[(hv * 977 % 1 * R.length) | 0]; I = 0.1 + 0.9 * Math.pow(L, 1.35); }
+          else if (CS.mode === 'random') { if (L > 0.06) { glyph = CS.ramp[(hv * 977 % 1 * CS.ramp.length) | 0]; I = 0.12 + 0.88 * L; } }
+          else { const Lr = clamp(L + (hv - 0.5) * 0.06, 0, 0.9999); glyph = CS.ramp[(Lr * CS.ramp.length) | 0]; I = Math.min(1, 0.42 + 0.78 * L); }
+          coh += ch; enSum += en; lSum += L;
+          if (P.showMask) { glyph = G.BLOCK; I = 0.7; }
         }
         I *= vis;
         let r = Cr[c], g = Cg[c], bb = Cb[c];
         if (pal) { const u = L * 2, A = pal.rampRGB[u < 1 ? 0 : 1], B2 = pal.rampRGB[u < 1 ? 1 : 2], f = u < 1 ? u : u - 1; r = lerp(A[0], B2[0], f); g = lerp(A[1], B2[1], f); bb = lerp(A[2], B2[2], f); if (stroke && L < 0.6) { r = lerp(r, pal.accentRGB[0], 0.7); g = lerp(g, pal.accentRGB[1], 0.7); bb = lerp(bb, pal.accentRGB[2], 0.7); } }
         else {
           const mx = Math.max(r, g, bb, 1), k = 255 / mx; r *= k; g *= k; bb *= k;
-          const gray = 0.299 * r + 0.587 * g + 0.114 * bb; r = clamp(gray + (r - gray) * 1.5, 0, 255); g = clamp(gray + (g - gray) * 1.5, 0, 255); bb = clamp(gray + (bb - gray) * 1.5, 0, 255);
+          const gray = 0.299 * r + 0.587 * g + 0.114 * bb; r = clamp(gray + (r - gray) * P.sat, 0, 255); g = clamp(gray + (g - gray) * P.sat, 0, 255); bb = clamp(gray + (bb - gray) * P.sat, 0, 255);
           const wv = clamp((L - 0.78) / 0.22, 0, 1) * 0.55; r = lerp(r, 255, wv); g = lerp(g, 255, wv); bb = lerp(bb, 255, wv);
         }
         cellA[o] = r; cellA[o + 1] = g; cellA[o + 2] = bb; cellA[o + 3] = clamp(I, 0, 1) * 255; cellB[o] = glyph;
@@ -1016,7 +1110,7 @@ function compose(t) {
     cellA[o + 3] = 0; cellB[o] = 0;
   }
   // thin outline just outside the subject
-  for (let cy = 0; cy < rows; cy++) for (let cx = 0; cx < cols; cx++) {
+  if (P.outline && !P.showMask) for (let cy = 0; cy < rows; cy++) for (let cx = 0; cx < cols; cx++) {
     const c = cy * cols + cx; if (Vis[c]) continue;
     const L1 = cx > 0 ? c - 1 : c, R1 = cx < cols - 1 ? c + 1 : c, U1 = cy > 0 ? c - cols : c, D1 = cy < rows - 1 ? c + cols : c;
     let nb = -1; if (Vis[L1]) nb = L1; else if (Vis[R1]) nb = R1; else if (Vis[U1]) nb = U1; else if (Vis[D1]) nb = D1;
@@ -1030,7 +1124,7 @@ function compose(t) {
   }
   const S = st.stats = { n: sm };
   if (sm > 0) {
-    S.cx = sx / sm; S.cy = sy / sm; S.top = top; S.topX = topX / topN; S.base = base; S.baseX = baseX / baseN; S.minX = minX; S.maxX = maxX; S.maxL = maxL; S.coh = coh / sm;
+    S.cx = sx / sm; S.cy = sy / sm; S.top = top; S.topX = topX / topN; S.base = base; S.baseX = baseX / baseN; S.minX = minX; S.maxX = maxX; S.maxL = maxL; S.coh = coh / sm; S.meanL = lSum / sm;
     const mxx = (sxx / sm - S.cx * S.cx) * cellW * cellW, myy = (syy / sm - S.cy * S.cy) * cellH * cellH, mxy = (sxy / sm - S.cx * S.cy) * cellW * cellH;
     let th = 0.5 * Math.atan2(2 * mxy, mxx - myy) / RAD; if (th < 0) th += 180; S.theta = 180 - th;
   }
@@ -1045,6 +1139,7 @@ function updateOverlays(t, dt) {
   if (P.intro && t < st.R && has) {
     const span = Math.max(1, st.finalBase - st.finalTop), v = clamp((S.base - S.top) / span, 0, 1);
     while (v >= st.nextTick && st.nextTick < 0.985 && !(src.rulerUntil && t > src.rulerUntil)) {
+      music.tick(((st.nextTick / 0.065) | 0) % 10);
       st.ticks.push({ born: t, x: (S.topX + 0.5) * cellW + 14, y: (S.top + 0.5) * cellH, v: st.nextTick, c: cellColor(S.top * cols + Math.round(S.topX), 1) });
       st.nextTick += 0.065 + (st.ticks.length % 3 === 2 ? 0.005 : 0);
       if (st.ticks.length > 9) st.ticks.shift();
@@ -1057,11 +1152,12 @@ function updateOverlays(t, dt) {
     else if (has) { x = (S.cx + (Math.random() - 0.3) * (S.maxX - S.minX + 8)) * cellW; y = (lerp(S.top, S.base, Math.random())) * cellH; }
     else { x = W0 * (0.3 + Math.random() * 0.4); y = H0 * (0.4 + Math.random() * 0.3); }
     st.tracker = { x, y, c, id: c >= 0 ? c % cols : (Math.random() * 160) | 0, born: t, until: t + 1.8 + Math.random() * 2.4, show: Math.random() < 0.8 };
+    if (st.tracker.show) music.ping(x / W0);
   }
   // bursts and pulses
   if (t >= st.R + 3) {
     if (t >= st.nextBurst && st.picks.length) {
-      st.nextBurst = t + 5 + Math.random() * 6;
+      st.nextBurst = t + 5 + Math.random() * 6; music.burst();
       const c0 = st.picks[(Math.random() * st.picks.length) | 0], x0 = c0 % cols, y0 = (c0 / cols) | 0; let made = 0;
       for (let k = 0; k < 260 && made < 70; k++) {
         const x = x0 + ((Math.random() - 0.5) * 22) | 0, y = y0 + ((Math.random() - 0.5) * 18) | 0; if (x < 0 || y < 0 || x >= cols || y >= rows) continue;
@@ -1070,7 +1166,7 @@ function updateOverlays(t, dt) {
         st.parts.push({ x: px, y: py, vx: dx / l * sp + (Math.random() - 0.5) * 20, vy: dy / l * sp - 14 - Math.random() * 22, life: 0, max: 0.9 + Math.random() * 1.6, col: cellColor(c, 1) }); made++;
       }
     }
-    if (t >= st.nextPulse && st.tracker && st.tracker.c >= 0) { st.nextPulse = t + 9 + Math.random() * 7; st.pulse = { t0: t, cx: st.tracker.c % cols, cy: (st.tracker.c / cols) | 0 }; }
+    if (t >= st.nextPulse && st.tracker && st.tracker.c >= 0) { st.nextPulse = t + 9 + Math.random() * 7; st.pulse = { t0: t, cx: st.tracker.c % cols, cy: (st.tracker.c / cols) | 0 }; music.pulse(); }
   }
   for (let i = st.parts.length - 1; i >= 0; i--) { const q = st.parts[i]; q.life += dt; q.x += q.vx * dt; q.y += q.vy * dt; q.vx *= 1 - 0.6 * dt; q.vy *= 1 - 0.6 * dt; if (q.life > q.max) st.parts.splice(i, 1); }
   if (has) {
@@ -1132,6 +1228,158 @@ function drawHud(t) {
   }
 }
 
+/* ------------------------------------------------------------------ soundtrack: key, tempo and arrangement come from the art */
+const NOTE = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+const MODES = { major:[0,2,4,5,7,9,11], lydian:[0,2,4,6,7,9,11], mixolydian:[0,2,4,5,7,9,10], dorian:[0,2,3,5,7,9,10], minor:[0,2,3,5,7,8,10], phrygian:[0,1,3,5,7,8,10] };
+const PROGS = {
+  major:[[0,4,5,3],[0,5,3,4],[3,0,4,5],[0,2,3,4]], lydian:[[0,1,0,4],[0,4,1,0],[0,5,1,4]], mixolydian:[[0,6,3,0],[0,3,6,3],[0,4,6,3]],
+  dorian:[[0,3,0,6],[0,6,3,4],[0,2,3,6]], minor:[[0,5,2,6],[0,3,5,4],[0,6,5,6],[0,2,5,3]], phrygian:[[0,1,0,6],[0,5,1,0],[0,1,2,1]],
+};
+const mtof = m => 440 * Math.pow(2, (m - 69) / 12);
+function buildEngine(ac) {
+  const E = { ac }, sr = ac.sampleRate;
+  const gn = (v, to) => { const n = ac.createGain(); n.gain.value = v; if (to) n.connect(to); return n; };
+  const pan = (v, to) => { const n = ac.createStereoPanner(); n.pan.value = v; n.connect(to); return n; };
+  E.out = gn(0.85);
+  const lim = ac.createDynamicsCompressor(); lim.threshold.value = -3; lim.knee.value = 2; lim.ratio.value = 20; lim.attack.value = 0.002; lim.release.value = 0.12;
+  const comp = ac.createDynamicsCompressor(); comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 2.5; comp.attack.value = 0.02; comp.release.value = 0.3;
+  E.master = gn(0.7, comp); comp.connect(lim); lim.connect(E.out);
+  const len = (3.8 * sr) | 0, ir = ac.createBuffer(2, len, sr), rr = mulberry(77);
+  for (let ch = 0; ch < 2; ch++) { const d = ir.getChannelData(ch); let lp = 0; for (let i = 0; i < len; i++) { const t = i / sr, a = 0.2 + 0.75 * Math.exp(-t * 1.5); lp += a * ((rr() * 2 - 1) - lp); d[i] = lp * Math.exp(-t * 1.85) * Math.min(1, t / 0.012); } }
+  const conv = ac.createConvolver(); conv.buffer = ir; const pre = ac.createDelay(0.1); pre.delayTime.value = 0.028;
+  E.rev = gn(1, pre); pre.connect(conv); conv.connect(gn(0.5, E.master));
+  const dL = ac.createDelay(2.5), dR = ac.createDelay(2.5), lpf = ac.createBiquadFilter(); lpf.type = 'lowpass'; lpf.frequency.value = 2600;
+  E.dly = gn(1, dL); dL.connect(pan(-0.65, gn(0.45, E.master))); dL.connect(lpf); lpf.connect(gn(0.36, dR)); dR.connect(pan(0.65, gn(0.45, E.master))); dR.connect(gn(0.3, dL)); dL.connect(gn(0.15, E.rev));
+  E.tempo = bpm => { dL.delayTime.value = 45 / bpm; dR.delayTime.value = 45 / bpm; };
+  E.duck = gn(1, E.master);
+  E.padF = ac.createBiquadFilter(); E.padF.type = 'lowpass'; E.padF.frequency.value = 900; E.padF.Q.value = 0.6; E.padF.connect(E.duck); E.padF.connect(gn(0.45, E.rev));
+  E.pad = gn(1, E.padF);
+  E.noise = ac.createBuffer(1, sr * 2, sr); { const d = E.noise.getChannelData(0), r2 = mulberry(9); for (let i = 0; i < d.length; i++) d[i] = r2() * 2 - 1; }
+  const osc = (type, f, t0, t1, det) => { const o = ac.createOscillator(); o.type = type; o.frequency.value = f; if (det) o.detune.value = det; o.start(t0); o.stop(t1); return o; };
+  const sends = (node, p, dry, dl, rv) => { const q = pan(p, gn(dry, E.master)); node.connect(q); if (dl) node.connect(gn(dl, E.dly)); if (rv) node.connect(gn(rv, E.rev)); };
+  E.padNote = (t, m, dur, lv, p) => {
+    const out = gn(0, pan(p, E.pad)), f = mtof(m), end = t + dur + 1.7;
+    out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(lv, t + Math.min(1.4, dur * 0.35)); out.gain.setValueAtTime(lv, t + dur - 0.2); out.gain.linearRampToValueAtTime(0, end - 0.05);
+    osc('sawtooth', f, t, end, -7).connect(gn(0.5, out)); osc('sawtooth', f, t, end, 6).connect(gn(0.5, out)); osc('triangle', f, t, end, 0).connect(gn(0.6, out));
+  };
+  E.bass = (t, m, dur, lv) => {
+    const f = mtof(m), lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380; const out = gn(0, E.duck); lp.connect(out);
+    out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(lv, t + 0.012); out.gain.setTargetAtTime(lv * 0.72, t + 0.03, 0.15); out.gain.setValueAtTime(lv * 0.72, t + dur); out.gain.linearRampToValueAtTime(0, t + dur + 0.12);
+    osc('sine', f, t, t + dur + 0.15).connect(lp); osc('triangle', f * 2, t, t + dur + 0.15).connect(gn(0.18, lp));
+  };
+  E.pluck = (t, m, vel, p, bright) => {
+    const f = mtof(m), lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 3;
+    lp.frequency.setValueAtTime(700 + 5200 * bright * vel, t); lp.frequency.exponentialRampToValueAtTime(420, t + 0.22);
+    const out = gn(0); lp.connect(out); out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(vel * 0.2, t + 0.004); out.gain.exponentialRampToValueAtTime(0.0008, t + 0.5);
+    osc('sawtooth', f, t, t + 0.55).connect(lp); osc('triangle', f * 2, t, t + 0.55, 4).connect(gn(0.4, lp)); sends(out, p, 0.8, 0.38, 0.28);
+  };
+  E.bell = (t, m, vel, p, long) => {
+    const f = mtof(m), tail = long ? 3.4 : 1.9, car = osc('sine', f, t, t + tail + 0.1), mod = osc('sine', f * 3.5, t, t + tail + 0.1), mg = gn(0);
+    mg.gain.setValueAtTime(f * 2.4 * vel, t); mg.gain.exponentialRampToValueAtTime(f * 0.05, t + 0.5); mod.connect(mg); mg.connect(car.frequency);
+    const out = gn(0); car.connect(out); osc('sine', f * 2.01, t, t + tail * 0.6).connect(gn(0.12, out));
+    out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(vel * 0.15, t + 0.005); out.gain.exponentialRampToValueAtTime(0.0006, t + tail); sends(out, p, 0.6, 0.32, 0.75);
+  };
+  const burst = (t, dur) => { const s = ac.createBufferSource(); s.buffer = E.noise; s.loop = true; s.start(t, (t * 7.13) % 1.5); s.stop(t + dur); return s; };
+  E.kick = (t, lv) => {
+    const o = ac.createOscillator(); o.frequency.setValueAtTime(128, t); o.frequency.exponentialRampToValueAtTime(43, t + 0.11); o.start(t); o.stop(t + 0.4);
+    const out = gn(0, E.master); o.connect(out); out.gain.setValueAtTime(0, t); out.gain.linearRampToValueAtTime(lv, t + 0.004); out.gain.exponentialRampToValueAtTime(0.001, t + 0.36);
+    E.duck.gain.setValueAtTime(1, t); E.duck.gain.linearRampToValueAtTime(0.42, t + 0.012); E.duck.gain.setTargetAtTime(1, t + 0.05, 0.11);
+  };
+  E.hat = (t, lv, p) => { const hp = ac.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 7600; burst(t, 0.06).connect(hp); const out = gn(0); hp.connect(out); out.gain.setValueAtTime(lv, t); out.gain.exponentialRampToValueAtTime(0.001, t + 0.045); sends(out, p, 0.5, 0, 0.08); };
+  E.clap = (t, lv) => { const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = 1700; bp.Q.value = 0.9; burst(t, 0.2).connect(bp); const out = gn(0); bp.connect(out); out.gain.setValueAtTime(lv, t); out.gain.exponentialRampToValueAtTime(0.001, t + 0.16); sends(out, 0, 0.5, 0.1, 0.5); };
+  E.swell = (t, m, lv) => {
+    const bp = ac.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 1.4; bp.frequency.setValueAtTime(300, t); bp.frequency.exponentialRampToValueAtTime(2400, t + 1.3); burst(t, 1.6).connect(bp);
+    const out = gn(0); bp.connect(out); out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(lv, t + 1.25); out.gain.linearRampToValueAtTime(0, t + 1.55); sends(out, 0, 0.5, 0.2, 0.6);
+    const sub = gn(0, E.master); osc('sine', mtof(m), t, t + 2.2).connect(sub); sub.gain.setValueAtTime(0, t); sub.gain.linearRampToValueAtTime(lv * 1.4, t + 1.3); sub.gain.linearRampToValueAtTime(0, t + 2.1);
+  };
+  return E;
+}
+function hueOf(c) { const r = c[0] / 255, g = c[1] / 255, b = c[2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; let h = 0; if (d > 0.001) h = mx === r ? ((g - b) / d + 6) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return { h: h * 60, s: mx ? d / mx : 0 }; }
+function composeScore() {
+  const { h, s } = hueOf(st.avg), pf = st.profile || { l: 0.5, e: 0.4 }, mood = P.mood, energy = clamp(pf.e * 1.2, 0, 1);
+  const rnd = mulberry((parseInt(src.seed, 36) || 7) * 31 + P.variation * 977 + 5);
+  let mode;
+  if (mood === 'calm') mode = 'lydian'; else if (mood === 'bright') mode = 'major'; else if (mood === 'dark') mode = 'phrygian'; else if (mood === 'pulse') mode = h > 150 && h < 320 ? 'minor' : 'dorian';
+  else if (pf.l < 0.22) mode = 'phrygian'; else if (s < 0.15) mode = 'dorian';
+  else if (h < 75 || h > 320) mode = pf.l > 0.5 ? 'major' : 'mixolydian'; else if (h < 170) mode = 'dorian'; else if (h < 262) mode = pf.l > 0.55 ? 'dorian' : 'minor'; else mode = 'minor';
+  const root = [0, 7, 2, 9, 4, 11, 6, 1, 8, 3, 10, 5][Math.round(h / 30) % 12];
+  let bpm = lerp(70, 104, energy); if (mood === 'calm') bpm *= 0.8; if (mood === 'dark') bpm *= 0.86; if (mood === 'pulse') bpm = Math.max(bpm + 12, 100);
+  bpm = Math.round(bpm);
+  const prog = PROGS[mode][(rnd() * PROGS[mode].length) | 0], minorish = mode === 'minor' || mode === 'dorian' || mode === 'phrygian';
+  const pent = minorish ? [0, 2, 3, 4, 6] : [0, 1, 2, 4, 5];
+  const phrase = () => { const out = []; let i = 2 + ((rnd() * 2) | 0); for (let k = 0; k < 16; k++) { if (rnd() < (k % 4 === 0 ? 0.75 : 0.36)) { i = clamp(i + ((rnd() * 5) | 0) - 2, 0, 9); out.push(pent[i % 5] + 7 * ((i / 5) | 0)); } else out.push(-1); } return out; };
+  const A = phrase(), B = phrase(), A2 = A.slice(); for (let k = 12; k < 16; k++) A2[k] = B[k];
+  const arps = [[0, 1, 2, 3, 2, 1], [0, 2, 1, 3], [3, 2, 1, 0, 1, 2], [0, 1, 2, 1, 3, 1, 2, 1], [0, 3, 1, 2]];
+  return { root, mode, bpm, prog, energy, motif: [A, A2, B, A], arp: arps[(rnd() * arps.length) | 0], sixteenth: energy > 0.5 || mood === 'pulse',
+    drums: mood === 'pulse' || (mood === 'auto' && energy > 0.52), four: energy > 0.78 || mood === 'pulse', bright: clamp(0.35 + pf.l * 0.8, 0.3, 1), calm: mood === 'calm' || mood === 'dark',
+    name: NOTE[root] + ' ' + mode + ' · ' + bpm + ' BPM', seed: (rnd() * 1e9) | 0 };
+}
+function degree(sc, d, base) { const n = MODES[sc.mode], o = Math.floor(d / 7), i = ((d % 7) + 7) % 7; return base + sc.root + n[i] + 12 * o; }
+function scheduleBar(E, sc, n, t0, level, bright) {
+  const beat = 60 / sc.bpm, bar = beat * 4, d = sc.prog[(n >> 1) % 4], r = mulberry(sc.seed + n * 131);
+  const tones = [0, 2, 4, 6].map(k => degree(sc, d + k, 48));
+  if (n % 2 === 0) {
+    const notes = tones.concat(sc.calm ? [degree(sc, d + 8, 48)] : []).map(m => { while (m < 55) m += 12; while (m > 70) m -= 12; return m; });
+    notes.forEach((m, i) => E.padNote(t0, m, bar * 2, 0.085 * (0.6 + 0.4 * level), (i % 2 ? 0.45 : -0.45) * (i < 2 ? 1 : 0.5)));
+  }
+  let b = degree(sc, d, 36); while (b > 47) b -= 12; while (b < 33) b += 12;
+  if (level < 0.42) { if (n % 2 === 0) E.bass(t0, b, bar * 2 - 0.2, 0.2); }
+  else { E.bass(t0, b, beat * 1.4, 0.34); E.bass(t0 + beat * 2.5, b, beat * 0.9, 0.3); if (sc.energy > 0.55) E.bass(t0 + beat * 3.5, b + 7, beat * 0.4, 0.24); }
+  if (level > 0.34) {
+    const steps = sc.sixteenth ? 16 : 8, sd = bar / steps, keep = 0.5 + 0.5 * level;
+    for (let i = 0; i < steps; i++) {
+      if (r() > keep && i % 4) continue;
+      const k = sc.arp[(i + n * 3) % sc.arp.length], m = tones[k] + 12 + (i % 8 >= 4 ? 12 : 0), sw = sc.sixteenth && i % 2 ? sd * 0.14 : 0;
+      E.pluck(t0 + i * sd + sw, m, (i % 4 === 0 ? 0.95 : 0.55 + 0.3 * r()) * (0.5 + 0.5 * level), i % 2 ? 0.4 : -0.4, bright);
+    }
+  }
+  if (level > 0.6 || (level > 0.3 && n % 4 === 3)) {
+    const ph = sc.motif[(n >> 1) % 4], off = (n % 2) * 8;
+    for (let i = 0; i < 8; i++) { const dg = ph[off + i]; if (dg < 0) continue; E.bell(t0 + i * beat / 2, degree(sc, dg, 72), 0.5 + 0.35 * r(), (r() - 0.5) * 0.9, i === 0); }
+  }
+  if (sc.drums && level > 0.9) {
+    for (let k = 0; k < 4; k++) if (sc.four || k % 2 === 0) E.kick(t0 + k * beat, 0.8);
+    for (let k = 0; k < 8; k++) { if (k % 2 || r() < 0.3) E.hat(t0 + k * beat / 2 + (k % 2 ? beat * 0.03 : 0), k % 2 ? 0.2 : 0.09, 0.25); }
+    if (sc.energy > 0.6) { E.clap(t0 + beat, 0.22); E.clap(t0 + beat * 3, 0.22); }
+    if (n % 8 === 7) for (let k = 0; k < 4; k++) E.hat(t0 + bar - (4 - k) * beat / 4, 0.1 + 0.04 * k, -0.2);
+  }
+  return bar;
+}
+const levelAt = appT => { if (appT < st.R) return 0.16 + 0.5 * (appT / Math.max(1, st.R)); const tt = (appT - st.R) % 46; return P.camera && tt > 26 && tt < 31 ? 0.45 : 1; };
+const music = {
+  on: false, E: null, sc: null, bar: 0, next: 0, timer: 0, dirty: true, dest: null,
+  start() {
+    if (this.on) return;
+    if (!this.E) { const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return false; const ac = new AC({ latencyHint:'playback' }); this.E = buildEngine(ac); this.E.out.connect(ac.destination); this.dest = ac.createMediaStreamDestination(); this.E.out.connect(this.dest); }
+    this.E.ac.resume(); this.on = true; this.volume(); this.restart();
+    this.timer = setInterval(() => this.pump(), 60); return true;
+  },
+  stop() { if (!this.on) return; this.on = false; clearInterval(this.timer); const ac = this.E.ac; this.E.out.gain.setTargetAtTime(0, ac.currentTime, 0.08); setTimeout(() => { if (!this.on) ac.suspend(); }, 500); },
+  volume() { if (this.E && this.on) this.E.out.gain.setTargetAtTime(0.85 * P.volume, this.E.ac.currentTime, 0.05); },
+  restart() { this.dirty = true; if (this.on) { this.bar = 0; this.next = this.E.ac.currentTime + 0.12; } },
+  pump() {
+    if (!this.on || st.revealDirty) return;
+    const ac = this.E.ac;
+    if (this.dirty) { this.dirty = false; this.sc = composeScore(); this.E.tempo(this.sc.bpm); $('score').textContent = this.sc.name; }
+    if (this.next < ac.currentTime) this.next = ac.currentTime + 0.05;
+    while (this.next < ac.currentTime + 0.4) { const lv = levelAt(st.time + (this.next - ac.currentTime)); this.next += scheduleBar(this.E, this.sc, this.bar++, this.next, lv, this.sc.bright); }
+  },
+  feed(bright, yaw) { if (!this.on || !this.sc) return; const lv = levelAt(st.time); this.E.padF.frequency.setTargetAtTime((320 + 2900 * bright * lv) * (1 + 0.3 * Math.sin(yaw)), this.E.ac.currentTime, 0.25); },
+  tick(i) { if (this.on && this.sc) this.E.pluck(this.E.ac.currentTime + 0.02, degree(this.sc, i, 72), 0.8, (i % 2 ? 0.3 : -0.3), 0.9); },
+  ping(x) { if (this.on && this.sc && levelAt(st.time) > 0.3) { const d = this.sc.prog[((this.bar - 1) >> 1) % 4]; this.E.bell(this.E.ac.currentTime + 0.02, degree(this.sc, d + [0, 2, 4, 7][(Math.random() * 4) | 0], 84), 0.32, clamp(x * 2 - 1, -0.9, 0.9), false); } },
+  pulse() { if (this.on && this.sc) this.E.swell(this.E.ac.currentTime + 0.02, degree(this.sc, 0, 36), 0.16); },
+  burst() { if (this.on && this.sc) for (let k = 0; k < 6; k++) this.E.bell(this.E.ac.currentTime + 0.03 + k * 0.07 + Math.random() * 0.04, degree(this.sc, [0, 2, 4, 5, 7, 9][(Math.random() * 6) | 0], 96), 0.16, Math.random() * 1.6 - 0.8, false); },
+  async render(sec) {
+    const ac = new OfflineAudioContext(2, Math.ceil(sec * 44100), 44100), E = buildEngine(ac), sc = composeScore(); E.out.connect(ac.destination); E.tempo(sc.bpm);
+    E.padF.frequency.value = 2200 * sc.bright; let t = 0.05, n = 0; while (t < sec) t += scheduleBar(E, sc, n++, t, levelAt(t), sc.bright);
+    const buf = await ac.startRendering(), L = buf.getChannelData(0), R2 = buf.getChannelData(1), out = new DataView(new ArrayBuffer(44 + L.length * 4));
+    const w = (o, s2) => { for (let i = 0; i < s2.length; i++) out.setUint8(o + i, s2.charCodeAt(i)); };
+    w(0, 'RIFF'); out.setUint32(4, 36 + L.length * 4, true); w(8, 'WAVEfmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 2, true); out.setUint32(24, 44100, true); out.setUint32(28, 176400, true); out.setUint16(32, 4, true); out.setUint16(34, 16, true); w(36, 'data'); out.setUint32(40, L.length * 4, true);
+    for (let i = 0; i < L.length; i++) { out.setInt16(44 + i * 4, clamp(L[i], -1, 1) * 32767, true); out.setInt16(46 + i * 4, clamp(R2[i], -1, 1) * 32767, true); }
+    return new Blob([out.buffer], { type:'audio/wav' });
+  },
+};
+
 /* ------------------------------------------------------------------ frame */
 function advance(dt) {
   st.time += dt; const t = st.time;
@@ -1139,6 +1387,7 @@ function advance(dt) {
   if (st.revealDirty) computeReveal();
   drawSource(t, P.intro ? t : 99, camZoom(t), false);
   measure(); compose(t); updateOverlays(t, dt); drawHud(t);
+  if (music.on) music.feed(st.stats && st.stats.n ? st.stats.meanL : 0.4, src.yawNow || 0);
 }
 function render() {
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
@@ -1158,14 +1407,15 @@ function render() {
   }
   pass(progComp, null, true);
   bind(0, fbBase.t, progComp.u.uBase); bind(1, levels[0].a.t, progComp.u.uB1); bind(2, levels[1].a.t, progComp.u.uB2); bind(3, levels[2].a.t, progComp.u.uB3); bind(4, levels[3].a.t, progComp.u.uB4);
-  gl.uniform1f(progComp.u.uGlow, P.glow); gl.uniform1f(progComp.u.uTime, st.time); gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.uniform1f(progComp.u.uGlow, P.glow); gl.uniform1f(progComp.u.uTime, st.time); gl.uniform1f(progComp.u.uScan, P.scan); gl.uniform1f(progComp.u.uGrain, P.grain); gl.uniform1f(progComp.u.uFringe, P.fringe); gl.uniform1f(progComp.u.uPaper, P.paper ? 1 : 0); gl.uniform1f(progComp.u.uRows, H0 / 3); gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 function restart() {
   st.time = 0; st.R = P.intro ? (src.introLen || 8) : 0; st.ticks = []; st.nextTick = 0.05; st.tracker = null; st.parts = []; st.pulse = null;
   st.nextBurst = st.R + 4; st.nextPulse = st.R + 8; st.anchor = null; st.levelsInit = false; st.revealDirty = true;
+  music.restart();
 }
 function applySource(fresh) {
-  const info = analyzeSource(base); st.avg = info.avg;
+  const info = analyzeSource(base); st.avg = info.avg; noteBackground(info);
   if (relief) { free3(relief); relief = null; }
   const whole = { mode:'alpha', key:[0, 0, 0] };
   if (base.kind !== 'mesh' && P.three && g3) { src = relief = reliefSource(base, info); st.bg = whole; st.crop = { x: 0, y: 0, w: src.w, h: src.h }; }
@@ -1174,7 +1424,7 @@ function applySource(fresh) {
   if (fresh) restart();
   const turning = src.kind === 'mesh';
   canvas.classList.toggle('turn', turning); $('three').checked = turning; $('three').disabled = base.kind === 'mesh' || !g3;
-  $('spin').disabled = !turning; $('turnhint').hidden = !turning;
+  $('spin').disabled = !turning; $('turnhint').textContent = turning ? 'Drag the stage to turn it. Scroll to zoom.' : 'Tick 3D object to turn any picture into a relief you can spin.';
 }
 function setSource(s) {
   if (base && base !== s) free3(base);
@@ -1210,12 +1460,13 @@ function recTick() {
   if (el >= rec.len) stopRecording();
 }
 function startRecording() {
-  const types = ['video/mp4;codecs=avc1.640028', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+  const types = music.on ? ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/mp4', 'video/webm'] : ['video/mp4;codecs=avc1.640028', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
   const type = window.MediaRecorder && types.find(x => MediaRecorder.isTypeSupported(x));
   if (!type || !canvas.captureStream) { say('This browser cannot record the canvas. Save a PNG instead.', true); return; }
   restart(); advance(0.001); render();
   const stream = canvas.captureStream(30), chunks = [];
-  const mr = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 18e6 });
+  if (music.on && music.dest) for (const tr of music.dest.stream.getAudioTracks()) stream.addTrack(tr.clone());
+  const mr = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 18e6, audioBitsPerSecond: 256000 });
   mr.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
   mr.onstop = async () => {
     stream.getTracks().forEach(x => x.stop());
@@ -1229,11 +1480,73 @@ function startRecording() {
 }
 function stopRecording() { if (!rec) return; const mr = rec.mr; rec = null; if (mr.state !== 'inactive') mr.stop(); }
 
+/* ------------------------------------------------------------------ character sets and looks */
+const SET_SLOTS = { blocks:[0, 44, 45, 46, 47, 48], dots:[0, 50, 51, 52, 53, 54, 55, 56, 57], binary:[G.D0, G.D0 + 1], digits:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => G.D0 + d) };
+const SET_TEXT = { ascii:' .:-=+*#%@', dense:' .\'`^",:;Il!i><~+_-?][}{1)(|/tfjrxnuvczXYUJCLQ0OZmwqpdbkhao*#MW&8%B@$' };
+function setCharset() {
+  const k = P.charset;
+  if (k === 'signal' || k === 'lines') st.cs = { mode: k };
+  else if (SET_SLOTS[k]) st.cs = { mode: k === 'blocks' || k === 'dots' ? 'ramp' : 'random', ramp: SET_SLOTS[k] };
+  else {
+    const chars = [...new Set([...(k === 'custom' ? P.custom : SET_TEXT[k])])].filter(ch => ch !== ' ').slice(0, 64);
+    const g = atlasCan.getContext('2d', { willReadFrequently:true }), found = [];
+    chars.forEach((ch, i) => {
+      const slot = 64 + i, x = (slot % 8) * TW, y = Math.floor(slot / 8) * TH;
+      g.fillStyle = '#000'; g.fillRect(x, y, TW, TH); g.save(); g.beginPath(); g.rect(x, y, TW, TH); g.clip();
+      g.fillStyle = '#fff'; g.font = '600 29px ui-monospace,"SF Mono",Menlo,Consolas,"Geist Mono",monospace'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(ch, x + TW / 2, y + TH / 2 + 1); g.restore();
+      const d = g.getImageData(x, y, TW, TH).data; let ink = 0; for (let o = 0; o < d.length; o += 4) ink += d[o];
+      found.push([slot, ink]);
+    });
+    found.sort((a, b) => a[1] - b[1]);
+    st.cs = { mode:'ramp', ramp: [0].concat(found.filter(f => f[1] > 0).map(f => f[0])) };
+    if (st.cs.ramp.length < 2) st.cs = { mode:'signal' };
+    gl.bindTexture(gl.TEXTURE_2D, texAtlas); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, atlasCan); gl.generateMipmap(gl.TEXTURE_2D);
+  }
+  $('customRow').hidden = $('customHint').hidden = k !== 'custom';
+}
+const LOOK_BASE = { charset:'signal', palette:'source', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, glow:1, scan:0, grain:1, fringe:1, paper:false };
+const LOOKS = [
+  ['signal', 'Signal', {}],
+  ['terminal', 'Terminal', { charset:'ascii', palette:'phosphor', strokes:0.5, scan:0.7, glow:1.25, fringe:2 }],
+  ['halftone', 'Halftone', { charset:'dots', palette:'mono', strokes:0, shimmer:0, outline:false, glow:0.45, grain:0.5 }],
+  ['blueprint', 'Blueprint', { charset:'lines', palette:'night', strokes:1.5, glow:0.9, shimmer:0.5 }],
+  ['matrix', 'Matrix', { charset:'digits', palette:'phosphor', strokes:0, shimmer:3, glow:1.4, outline:false }],
+  ['blocks', 'Blocks', { charset:'blocks', strokes:0, shimmer:0.3, outline:false, glow:0.7, sat:1.8 }],
+  ['amber', 'Amber CRT', { charset:'dense', palette:'amber', strokes:0.4, scan:0.85, glow:1.3, fringe:2.5, grain:2 }],
+  ['newsprint', 'Newsprint', { charset:'dots', strokes:0.3, shimmer:0, glow:0, paper:true, grain:2, sat:1.2, contrast:1.2, outline:false }],
+  ['typewriter', 'Typewriter', { charset:'dense', palette:'mono', strokes:0, shimmer:0, glow:0, paper:true, grain:1.5, contrast:1.3, outline:false }],
+];
+function syncUI() {
+  for (const el of document.querySelectorAll('[data-k]')) { const v = P[el.dataset.k]; if (el.type === 'checkbox') el.checked = !!v; else el.value = String(v); }
+}
+function applyLook(key) {
+  const look = LOOKS.find(l => l[0] === key); Object.assign(P, LOOK_BASE, look[2]); P.look = key;
+  syncUI(); setCharset(); st.levelsInit = false;
+  for (const b of $('looks').children) b.setAttribute('aria-pressed', String(b.dataset.key === key));
+}
+function noteBackground(info) {
+  const auto = P.bg === 'auto', key = info.bg.key, light = key[0] + key[1] + key[2] > 380, m = info.bg.mode;
+  $('bgnote').textContent = m === 'alpha' ? 'Using the file’s own transparency.' : m === 'none' ? (auto ? 'Busy background found, so the whole picture is kept.' : 'Whole picture kept.') : (auto ? 'Plain ' : '') + (light ? 'light' : 'dark') + ' background removed.';
+  $('tolRow').hidden = $('tolHint').hidden = m !== 'key';
+}
+
 /* ------------------------------------------------------------------ controls */
 async function openFile(file) {
   if (!file) return;
   try { say('Reading ' + file.name + ' …'); setSource(await loadFile(file)); say(''); }
   catch (e) { say('Could not read that file. Try a PNG, JPG, WebP, GIF or MP4.', true); }
+}
+function onParam(k) {
+  if (k === 'density' || k === 'format' || k === 'res') setStage();
+  else if (k === 'bg' || k === 'tol' || k === 'three') applySource(false);
+  else if (k === 'invert' || k === 'contrast') st.levelsInit = false;
+  else if (k === 'intro') restart();
+  else if (k === 'camera') st.revealDirty = true;
+  else if (k === 'charset' || k === 'custom') setCharset();
+  else if (k === 'volume') music.volume();
+  else if (k === 'mood') music.restart();
+  if (LOOK_BASE.hasOwnProperty(k)) for (const b of $('looks').children) b.setAttribute('aria-pressed', 'false');
 }
 function wire() {
   $('open').onclick = () => $('file').click();
@@ -1243,29 +1556,38 @@ function wire() {
     const b = document.createElement('button'); b.textContent = label; b.dataset.key = key; b.setAttribute('aria-pressed', 'false');
     b.onclick = () => { setSource(make()); say(''); }; $('tpl').appendChild(b);
   }
-  $('three').onchange = e => { P.three = e.target.checked; applySource(false); };
-  $('spin').onchange = e => { P.spin = e.target.checked; };
+  for (const [key, label] of LOOKS) {
+    const b = document.createElement('button'); b.textContent = label; b.dataset.key = key; b.setAttribute('aria-pressed', String(key === 'signal'));
+    b.onclick = () => applyLook(key); $('looks').appendChild(b);
+  }
+  for (const el of document.querySelectorAll('[data-k]')) {
+    const k = el.dataset.k, num = el.type === 'range' || k === 'res';
+    const read = () => { P[k] = el.type === 'checkbox' ? el.checked : num ? +el.value : el.value; onParam(k); };
+    el.addEventListener(el.type === 'range' || el.type === 'text' ? 'input' : 'change', read);
+  }
+  $('replay').onclick = restart;
+  $('png').onclick = () => { render(); canvas.toBlob(async b => { if (b) { const ok = await saveFile(fileStem() + '.png', b); say(ok ? 'PNG ready · ' + canvas.width + '×' + canvas.height : 'Save cancelled.'); } }, 'image/png'); };
+  $('record').onclick = () => rec ? stopRecording() : startRecording();
+  $('play').onclick = () => {
+    if (music.on) { music.stop(); $('play').textContent = 'Play soundtrack'; $('play').classList.remove('primary'); return; }
+    if (music.start() === false) { $('score').textContent = 'This browser has no Web Audio.'; return; }
+    $('play').textContent = 'Stop soundtrack'; $('play').classList.add('primary');
+  };
+  $('vary').onclick = () => { P.variation++; music.restart(); if (!music.on) $('score').textContent = 'Variation ' + (P.variation + 1) + ' is ready. Press play.'; };
+  $('wav').hidden = !!window.claude;
+  $('wav').onclick = async () => { say('Rendering ' + $('len').value + ' s of audio …'); const b = await music.render(+$('len').value); await saveFile(fileStem() + '.wav', b); say('Soundtrack ready · ' + (b.size / 1048576).toFixed(1) + ' MB WAV'); };
   let px = 0, py = 0;
   canvas.addEventListener('pointerdown', e => { if (src.kind !== 'mesh') return; orbit.drag = true; px = e.clientX; py = e.clientY; canvas.setPointerCapture(e.pointerId); });
   canvas.addEventListener('pointermove', e => { if (!orbit.drag) return; orbit.yaw += (e.clientX - px) * 0.01; orbit.pitch = clamp(orbit.pitch + (e.clientY - py) * 0.01, -1.3, 1.3); px = e.clientX; py = e.clientY; });
   const drop3 = () => { orbit.drag = false; };
   canvas.addEventListener('pointerup', drop3); canvas.addEventListener('pointercancel', drop3);
-  canvas.addEventListener('wheel', e => { if (src.kind !== 'mesh') return; e.preventDefault(); orbit.zoom = clamp(orbit.zoom * Math.exp(-e.deltaY * 0.0012), 0.55, 1.9); }, { passive:false });
-  $('replay').onclick = restart;
-  $('png').onclick = () => { render(); canvas.toBlob(async b => { if (b) { const ok = await saveFile(fileStem() + '.png', b); say(ok ? 'PNG ready · ' + canvas.width + '×' + canvas.height : 'Save cancelled.'); } }, 'image/png'); };
-  $('record').onclick = () => rec ? stopRecording() : startRecording();
-  const num = (id, key, after) => $(id).oninput = e => { P[key] = +e.target.value; after && after(); };
-  const pick = (id, key, after) => $(id).onchange = e => { P[key] = e.target.type === 'checkbox' ? e.target.checked : e.target.value; after && after(); };
-  num('density', 'density', setStage); num('glow', 'glow'); $('tol').oninput = e => { P.tol = +e.target.value; applySource(false); };
-  pick('palette', 'palette'); pick('bg', 'bg', () => applySource(false));
-  pick('invert', 'invert', () => { st.levelsInit = false; }); pick('intro', 'intro', restart); pick('camera', 'camera', () => { st.revealDirty = true; }); pick('hud', 'hud');
-  pick('format', 'format', setStage); $('res').onchange = e => { P.res = +e.target.value; setStage(); };
-  const wrap = $('stageWrap'), drop = $('drop'); let depth = 0;
+  canvas.addEventListener('wheel', e => { if (src.kind !== 'mesh') return; e.preventDefault(); orbit.zoom = clamp(orbit.zoom * Math.exp(-e.deltaY * 0.0012), 0.55, 1.05); }, { passive:false });
+  const drop = $('drop'); let depth = 0;
   addEventListener('dragenter', e => { e.preventDefault(); depth++; drop.hidden = false; });
   addEventListener('dragover', e => e.preventDefault());
   addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; drop.hidden = true; } });
   addEventListener('drop', e => { e.preventDefault(); depth = 0; drop.hidden = true; openFile(e.dataTransfer.files[0]); });
-  addEventListener('paste', e => { const f = e.clipboardData && e.clipboardData.files[0]; if (f) openFile(f); });
+  addEventListener('paste', e => { if (e.target && e.target.id === 'custom') return; const f = e.clipboardData && e.clipboardData.files[0]; if (f) openFile(f); });
   document.addEventListener('visibilitychange', () => { last = performance.now(); });
 }
 
@@ -1273,7 +1595,7 @@ if (!gl) { say('This browser has no WebGL 2, so the stage cannot draw.', true); 
 else {
   initGL(); setStage(); wire(); setSource(irisSource());
   const m = /[#&]t=([\d.]+)/.exec(location.hash);
-  window.GB = { P, st, orbit, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
+  window.GB = { P, st, orbit, music, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); }, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
   if (m) window.GB.seek(+m[1]);
   requestAnimationFrame(loop);
 }

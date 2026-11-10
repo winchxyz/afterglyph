@@ -22,8 +22,8 @@ await page.goto(pathToFileURL(join(here, '..', 'index.html')).href);
 await page.waitForFunction(() => window.GB);
 await page.evaluate(() => window.GB.pause(true));
 const set = {};
-for (const k of ['density', 'glow', 'palette', 'bg', 'tol', 'format', 'res']) if (k in opt) set[k] = isNaN(+opt[k]) ? opt[k] : +opt[k];
-for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin']) if (k in opt) set[k] = opt[k] === '1';
+for (const k of ['density', 'glow', 'palette', 'bg', 'tol', 'format', 'res', 'charset', 'custom', 'strokes', 'shimmer', 'sat', 'contrast', 'scan', 'grain', 'fringe', 'mood', 'variation']) if (k in opt) set[k] = isNaN(+opt[k]) ? opt[k] : +opt[k];
+for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin', 'paper', 'outline', 'showMask']) if (k in opt) set[k] = opt[k] === '1';
 if (!('res' in set)) set.res = 1;
 await page.evaluate(s => { Object.assign(window.GB.P, s); window.GB.stage(); }, set);
 if (opt.tpl) await page.evaluate(k => window.GB.template(k), opt.tpl);
@@ -35,6 +35,9 @@ if (opt.file) {
     window.GB.setSource(await window.GB.loadFile(new File([u], name, { type })));
   }, { bytes, name: basename(opt.file) });
 }
+if (opt.look) await page.evaluate(k => window.GB.look(k), opt.look);
+await page.evaluate(() => window.GB.sync());
+if (opt.zoom) await page.evaluate(z => { window.GB.orbit.zoom = z; }, +opt.zoom);
 if (opt.yaw) await page.evaluate(y => { window.GB.orbit.yaw = y; }, +opt.yaw);
 if ('three' in opt) await page.evaluate(() => window.GB.apply(true));
 const tag = opt.tag || opt.tpl || (opt.file ? basename(opt.file).replace(/\W+/g, '_') : 'iris');
@@ -51,6 +54,17 @@ if (opt.frames) {
     const url = await page.evaluate(dt => window.GB.step(dt), step);
     writeFileSync(join(outDir, `${tag}_f${String(i).padStart(3, '0')}.png`), Buffer.from(url.split(',')[1], 'base64'));
   }
+}
+if (opt.wav) {
+  // offline render of the soundtrack for this source, for level and spectrum checks
+  const b64 = await page.evaluate(async sec => {
+    const blob = await window.GB.music.render(sec), u = new Uint8Array(await blob.arrayBuffer());
+    let s = ''; for (let i = 0; i < u.length; i += 32768) s += String.fromCharCode.apply(null, u.subarray(i, i + 32768));
+    return window.GB.score() + '|' + btoa(s);
+  }, +opt.wav);
+  const cut = b64.indexOf('|');
+  writeFileSync(join(outDir, `${tag}.wav`), Buffer.from(b64.slice(cut + 1), 'base64'));
+  console.log('score:', b64.slice(0, cut));
 }
 if (opt.ui) await page.screenshot({ path: join(outDir, `${tag}_ui.png`) });
 await browser.close();
