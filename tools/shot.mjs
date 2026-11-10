@@ -1,0 +1,56 @@
+// Headless screenshots of the stage.
+// Usage: node tools/shot.mjs <outDir> [t=24,...] [tpl=knot] [file=path] [three=1] [frames=60 step=0.08] [res=1] [key=value ...]
+// Needs playwright-core; if it is not installed here, point PLAYWRIGHT_FROM at a folder whose node_modules has it.
+import { createRequire } from 'node:module';
+import { writeFileSync, mkdirSync, readFileSync } from 'node:fs';
+import { dirname, join, basename } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+
+const require = createRequire(process.env.PLAYWRIGHT_FROM ? pathToFileURL(join(process.env.PLAYWRIGHT_FROM, 'x.js')) : import.meta.url);
+const { chromium } = require('playwright-core');
+const here = dirname(fileURLToPath(import.meta.url));
+const [outDir, ...rest] = process.argv.slice(2);
+const opt = Object.fromEntries(rest.map(a => a.split('=')));
+const times = (opt.t || '24').split(',').map(Number);
+mkdirSync(outDir, { recursive: true });
+
+const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+page.on('console', m => { if (m.type() === 'error') console.log('console error:', m.text()); });
+page.on('pageerror', e => console.log('page error:', e.message));
+await page.goto(pathToFileURL(join(here, '..', 'index.html')).href);
+await page.waitForFunction(() => window.GB);
+await page.evaluate(() => window.GB.pause(true));
+const set = {};
+for (const k of ['density', 'glow', 'palette', 'bg', 'tol', 'format', 'res']) if (k in opt) set[k] = isNaN(+opt[k]) ? opt[k] : +opt[k];
+for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin']) if (k in opt) set[k] = opt[k] === '1';
+if (!('res' in set)) set.res = 1;
+await page.evaluate(s => { Object.assign(window.GB.P, s); window.GB.stage(); }, set);
+if (opt.tpl) await page.evaluate(k => window.GB.template(k), opt.tpl);
+if (opt.file) {
+  const bytes = readFileSync(opt.file).toString('base64');
+  await page.evaluate(async ({ bytes, name }) => {
+    const bin = atob(bytes), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+    const type = /\.gif$/i.test(name) ? 'image/gif' : /\.png$/i.test(name) ? 'image/png' : 'image/jpeg';
+    window.GB.setSource(await window.GB.loadFile(new File([u], name, { type })));
+  }, { bytes, name: basename(opt.file) });
+}
+if (opt.yaw) await page.evaluate(y => { window.GB.orbit.yaw = y; }, +opt.yaw);
+if ('three' in opt) await page.evaluate(() => window.GB.apply(true));
+const tag = opt.tag || opt.tpl || (opt.file ? basename(opt.file).replace(/\W+/g, '_') : 'iris');
+for (const t of times) {
+  const t0 = Date.now();
+  const url = await page.evaluate(tt => { window.GB.seek(tt); return window.GB.shot(); }, t);
+  const out = join(outDir, `${tag}_${String(t).padStart(4, '0')}.png`);
+  writeFileSync(out, Buffer.from(url.split(',')[1], 'base64'));
+  console.log(out, (Date.now() - t0) + ' ms');
+}
+if (opt.frames) {
+  const step = +(opt.step || 0.08);
+  for (let i = 0; i < +opt.frames; i++) {
+    const url = await page.evaluate(dt => window.GB.step(dt), step);
+    writeFileSync(join(outDir, `${tag}_f${String(i).padStart(3, '0')}.png`), Buffer.from(url.split(',')[1], 'base64'));
+  }
+}
+if (opt.ui) await page.screenshot({ path: join(outDir, `${tag}_ui.png`) });
+await browser.close();
