@@ -1,6 +1,6 @@
 <title>Glyph Bloom</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Geist+Mono:wght@400;500&display=swap">
 <style>
 /* Layout: one stage, one quiet control column. The art is the only loud thing on the page. */
 :root{
@@ -50,6 +50,8 @@ details.group[open] > summary::after{content:"\2212"}
 details.group > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .hint{margin:-4px 0 2px;font-size:11.5px;line-height:1.4;color:var(--muted)}
 input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;min-width:0}
+#stage.alpha{background:repeating-conic-gradient(#1c1e2b 0 25%,#11121a 0 50%) 0 0/22px 22px}
+#mkword{flex:0 0 auto}
 #stage.turn{cursor:grab;touch-action:none}
 #stage.turn:active{cursor:grabbing}
 @media (max-width:760px){
@@ -77,6 +79,11 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
       <input type="file" id="file" accept="image/*,video/*" hidden>
       <p class="meta" id="srcinfo">IRIS · built-in</p>
       <div class="tpl" id="tpl" role="group" aria-label="Templates"></div>
+      <div class="row">
+        <input type="text" id="word" maxlength="40" placeholder="Or type a word" aria-label="Text to turn into art" autocomplete="off" spellcheck="false">
+        <button id="mkword">Make</button>
+      </div>
+      <button id="cam" hidden>Use live camera</button>
     </div>
 
     <details class="group" open>
@@ -157,6 +164,9 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
       <label class="t" for="three"><input type="checkbox" id="three" data-k="three"> 3D object</label>
       <label class="t" for="spin"><input type="checkbox" id="spin" data-k="spin" checked> Turn by itself</label>
       <p class="hint" id="turnhint">Drag the stage to turn it. Scroll to zoom.</p>
+      <button id="depthBtn">Add depth map</button>
+      <input type="file" id="depthFile" accept="image/*" hidden>
+      <p class="hint">Optional. A grey picture of the same shot where white is near and black is far. It gives the 3D object real depth instead of a rounded guess.</p>
     </details>
 
     <details class="group" open>
@@ -190,10 +200,18 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
         <option value="1">1× (1024 px)</option>
         <option value="2" selected>2× (2048 px)</option>
       </select></label>
+      <label class="t" for="alpha"><input type="checkbox" id="alpha" data-k="alpha"> Transparent background</label>
+      <p class="hint">PNG, GIF and WebM video are saved without the black, ready to lay over other footage.</p>
       <div class="row">
         <button id="replay">Replay</button>
         <button id="png">Save PNG</button>
       </div>
+      <div class="row">
+        <button id="gif">Save GIF</button>
+        <button id="link">Copy link</button>
+      </div>
+      <input type="text" id="linkout" readonly hidden aria-label="Share link">
+      <p class="hint">The GIF is 6 seconds from this moment. The link carries every setting and the template or text. Your own files stay on your device, so they are not in it.</p>
       <div class="row">
         <button id="record">Record video</button>
         <select id="len" aria-label="Video length">
@@ -315,7 +333,7 @@ function buildAtlas() {
 }
 
 /* ------------------------------------------------------------------ parameters and state */
-const P = { density:146, glow:1, palette:'source', bg:'auto', tol:0.16, invert:false, intro:true, camera:true, hud:true, format:'4:5', res:2, three:false, spin:true, look:'signal', charset:'signal', custom:' .oO0@#', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, scan:0, grain:1, fringe:1, paper:false, showMask:false, mood:'auto', volume:0.8, variation:0 };
+const P = { density:146, glow:1, palette:'source', bg:'auto', tol:0.16, invert:false, intro:true, camera:true, hud:true, format:'4:5', res:2, three:false, spin:true, look:'signal', charset:'signal', custom:' .oO0@#', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, scan:0, grain:1, fringe:1, paper:false, showMask:false, mood:'auto', volume:0.8, variation:0, alpha:false };
 const PALETTES = {
   night:    { ramp:['#3b37d6','#7f8cff','#e8ebff'], accent:'#63e6b4', label:'GECE-MAVISI' },
   phosphor: { ramp:['#0c7a3e','#39e27d','#e2ffe9'], accent:'#b8ffd0', label:'PHOSPHOR' },
@@ -336,7 +354,7 @@ const st = { time:0, R:0, lo:0, hi:1, levelsInit:false, bg:{ mode:'alpha', key:[
 
 /* ------------------------------------------------------------------ WebGL */
 const canvas = $('stage');
-const gl = canvas.getContext('webgl2', { antialias:false, alpha:false, preserveDrawingBuffer:true });
+const gl = canvas.getContext('webgl2', { antialias:false, alpha:true, premultipliedAlpha:true, preserveDrawingBuffer:true });
 const VS = `#version 300 es
 in vec2 aPos; uniform float uFlip; out vec2 vUv;
 void main(){ vUv=aPos; gl_Position=vec4(aPos.x*2.-1., uFlip>.5 ? 1.-aPos.y*2. : aPos.y*2.-1., 0., 1.); }`;
@@ -362,7 +380,7 @@ void main(){
 }`;
 const FS_COMP = `#version 300 es
 precision highp float; in vec2 vUv; out vec4 o;
-uniform sampler2D uBase,uB1,uB2,uB3,uB4; uniform float uGlow,uTime,uScan,uGrain,uFringe,uPaper,uRows;
+uniform sampler2D uBase,uB1,uB2,uB3,uB4; uniform float uGlow,uTime,uScan,uGrain,uFringe,uPaper,uRows,uAlpha;
 float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
 void main(){
   vec2 d=vUv-.5; float r2=dot(d,d);
@@ -374,16 +392,20 @@ void main(){
   col=1.-exp(-col*1.25);
   col*=(1.+uScan*.3)*(1.-uScan*.45*(.5+.5*cos(vUv.y*uRows*2.0944)));
   float n=h(vUv*vec2(1387.,1931.)+fract(uTime)*7.)-.5;
+  float al=1.;
   if(uPaper>.5){
     float mx=max(col.r,max(col.g,col.b)), a=clamp(mx*1.25,0.,1.);
-    vec3 paper=vec3(.93,.9,.84)*(1.-r2*.22);
-    col=mix(paper,col/max(mx,.001)*.2,a)+n*.03*uGrain;
+    vec3 ink=col/max(mx,.001)*.2;
+    if(uAlpha>.5){ col=ink*a; al=a; }
+    else { vec3 paper=vec3(.93,.9,.84)*(1.-r2*.22); col=mix(paper,ink,a)+n*.03*uGrain; }
+  } else if(uAlpha>.5){
+    al=clamp(max(col.r,max(col.g,col.b))*1.6,0.,1.); col=min(col,vec3(al));
   } else {
     col+=vec3(.006,.008,.02)*(1.-r2*1.6);
     col*=1.-r2*.55;
     col+=n*.012*uGrain;
   }
-  o=vec4(max(col,0.),1.);
+  o=vec4(max(col,0.),al);
 }`;
 function shader(type, s) { const x = gl.createShader(type); gl.shaderSource(x, s); gl.compileShader(x); if (!gl.getShaderParameter(x, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(x)); return x; }
 function program(fs) {
@@ -869,12 +891,22 @@ function reliefSource(base, info) {
   blur(lum, T); blur(T, lum); blur(lum, T);
   for (let c = 0; c < n; c++) { const q = 1 - Math.min(D[c] / rr, 1); H[c] = inside[c] ? thick * Math.sqrt(1 - q * q) + (T[c] - 0.5) * det * Math.min(1, D[c] / 4) : 0; }
   blur(H, T); blur(T, H);
+  const dm = base.depth;
+  if (dm) {
+    // a real depth map replaces the rounded guess: white is near, black is far; the back stays flat
+    const dc = document.createElement('canvas'); dc.width = gw; dc.height = gh; const dg = dc.getContext('2d', { willReadFrequently:true });
+    dg.scale(gw / cr.w, gh / cr.h); dg.translate(-cr.x, -cr.y); dg.drawImage(dm, 0, 0, base.w, base.h);
+    const q = dg.getImageData(0, 0, gw, gh).data;
+    for (let c = 0; c < n; c++) H[c] = inside[c] ? 0.03 + (0.299 * q[c * 4] + 0.587 * q[c * 4 + 1] + 0.114 * q[c * 4 + 2]) / 255 * 0.42 : 0;
+    blur(H, T); blur(T, H);
+  }
   const ax = 0.95 * Math.min(1, asp), ay = 0.95 * Math.min(1, 1 / asp), dx = 2 * ax / (gw - 1), dy = 2 * ay / (gh - 1);
   const v = new Float32Array(n * 2 * 11), idx = [];
   for (let side = 0; side < 2; side++) for (let j = 0; j < gh; j++) for (let i = 0; i < gw; i++) {
     const c = j * gw + i, o = (side * n + c) * 11, sg = side ? -1 : 1;
     const hx = (H[j * gw + Math.min(gw - 1, i + 1)] - H[j * gw + Math.max(0, i - 1)]) / (2 * dx), hy = (H[Math.max(0, j - 1) * gw + i] - H[Math.min(gh - 1, j + 1) * gw + i]) / (2 * dy), l = Math.hypot(hx, hy, 1);
     v[o] = -ax + i * dx; v[o + 1] = ay - j * dy; v[o + 2] = sg * H[c]; v[o + 3] = -hx / l; v[o + 4] = -hy / l; v[o + 5] = sg / l; v[o + 9] = (i + 0.5) / gw; v[o + 10] = (j + 0.5) / gh;
+    if (side && dm) { v[o + 2] = -0.02; v[o + 3] = 0; v[o + 4] = 0; v[o + 5] = -1; }
   }
   for (let side = 0; side < 2; side++) for (let j = 0; j < gh - 1; j++) for (let i = 0; i < gw - 1; i++) {
     const c = j * gw + i; if (!(inside[c] | inside[c + 1] | inside[c + gw] | inside[c + gw + 1])) continue;
@@ -1388,6 +1420,7 @@ function advance(dt) {
   drawSource(t, P.intro ? t : 99, camZoom(t), false);
   measure(); compose(t); updateOverlays(t, dt); drawHud(t);
   if (music.on) music.feed(st.stats && st.stats.n ? st.stats.meanL : 0.4, src.yawNow || 0);
+  if (base.live && music.on) feelMotion(t);
 }
 function render() {
   gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, false);
@@ -1407,7 +1440,7 @@ function render() {
   }
   pass(progComp, null, true);
   bind(0, fbBase.t, progComp.u.uBase); bind(1, levels[0].a.t, progComp.u.uB1); bind(2, levels[1].a.t, progComp.u.uB2); bind(3, levels[2].a.t, progComp.u.uB3); bind(4, levels[3].a.t, progComp.u.uB4);
-  gl.uniform1f(progComp.u.uGlow, P.glow); gl.uniform1f(progComp.u.uTime, st.time); gl.uniform1f(progComp.u.uScan, P.scan); gl.uniform1f(progComp.u.uGrain, P.grain); gl.uniform1f(progComp.u.uFringe, P.fringe); gl.uniform1f(progComp.u.uPaper, P.paper ? 1 : 0); gl.uniform1f(progComp.u.uRows, H0 / 3); gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.uniform1f(progComp.u.uGlow, P.glow); gl.uniform1f(progComp.u.uTime, st.time); gl.uniform1f(progComp.u.uScan, P.scan); gl.uniform1f(progComp.u.uGrain, P.grain); gl.uniform1f(progComp.u.uFringe, P.fringe); gl.uniform1f(progComp.u.uPaper, P.paper ? 1 : 0); gl.uniform1f(progComp.u.uRows, H0 / 3); gl.uniform1f(progComp.u.uAlpha, P.alpha ? 1 : 0); gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 function restart() {
   st.time = 0; st.R = P.intro ? (src.introLen || 8) : 0; st.ticks = []; st.nextTick = 0.05; st.tracker = null; st.parts = []; st.pulse = null;
@@ -1424,10 +1457,11 @@ function applySource(fresh) {
   if (fresh) restart();
   const turning = src.kind === 'mesh';
   canvas.classList.toggle('turn', turning); $('three').checked = turning; $('three').disabled = base.kind === 'mesh' || !g3;
+  $('depthBtn').textContent = base.depth ? 'Remove depth map' : 'Add depth map'; $('depthBtn').disabled = base.kind === 'mesh' || !g3;
   $('spin').disabled = !turning; $('turnhint').textContent = turning ? 'Drag the stage to turn it. Scroll to zoom.' : 'Tick 3D object to turn any picture into a relief you can spin.';
 }
 function setSource(s) {
-  if (base && base !== s) free3(base);
+  if (base && base !== s) { free3(base); if (base.stop) base.stop(); }
   base = s; orbit.yaw = 0; orbit.pitch = 0.14; orbit.zoom = 1; orbit.phase = 0;
   applySource(true);
   $('srcinfo').textContent = s.kind === 'iris' || s.kind === 'mesh' ? s.name + ' · built-in' : s.name + ' · ' + s.w + '×' + s.h + ' · ' + s.info;
@@ -1460,7 +1494,7 @@ function recTick() {
   if (el >= rec.len) stopRecording();
 }
 function startRecording() {
-  const types = music.on ? ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/mp4', 'video/webm'] : ['video/mp4;codecs=avc1.640028', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
+  const types = P.alpha ? ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'] : music.on ? ['video/mp4;codecs=avc1.640028,mp4a.40.2', 'video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/mp4', 'video/webm'] : ['video/mp4;codecs=avc1.640028', 'video/mp4', 'video/webm;codecs=vp9', 'video/webm'];
   const type = window.MediaRecorder && types.find(x => MediaRecorder.isTypeSupported(x));
   if (!type || !canvas.captureStream) { say('This browser cannot record the canvas. Save a PNG instead.', true); return; }
   restart(); advance(0.001); render();
@@ -1479,6 +1513,137 @@ function startRecording() {
   $('record').classList.add('rec'); say('Recording from the start. Keep this tab in front.');
 }
 function stopRecording() { if (!rec) return; const mr = rec.mr; rec = null; if (mr.state !== 'inactive') mr.stop(); }
+
+/* ------------------------------------------------------------------ text and live camera sources */
+function textSource(text) {
+  const raw = String(text).replace(/\s+/g, ' ').trim().slice(0, 40) || 'GLYPH';
+  let lines = raw.split(/\s*\|\s*/).filter(Boolean);
+  if (lines.length === 1 && raw.length > 9 && raw.includes(' ')) { const w = raw.split(' '), half = raw.length / 2; let a = '', i = 0; while (i < w.length - 1 && (a + w[i]).length < half) a += w[i++] + ' '; lines = [a.trim() || w[i++], w.slice(i).join(' ')].filter(Boolean); }
+  lines = lines.slice(0, 3);
+  const size = 280, pad = 36, lh = size * 1.02, c = document.createElement('canvas'), g = c.getContext('2d');
+  const font = '800 ' + size + 'px "SF Pro Display",-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif';
+  g.font = font; const wide = Math.max(...lines.map(l => g.measureText(l).width));
+  c.width = Math.ceil(wide + pad * 2); c.height = Math.ceil(lines.length * lh + pad * 2);
+  g.font = font; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let hh = 0; for (let i = 0; i < raw.length; i++) hh = (hh * 31 + raw.charCodeAt(i)) % 360;
+  const fill = g.createLinearGradient(0, 0, c.width * 0.3, c.height);
+  fill.addColorStop(0, 'hsl(' + hh + ',95%,74%)'); fill.addColorStop(0.55, 'hsl(' + (hh + 40) % 360 + ',88%,56%)'); fill.addColorStop(1, 'hsl(' + (hh + 85) % 360 + ',80%,36%)');
+  g.fillStyle = fill; lines.forEach((l, i) => g.fillText(l, c.width / 2, pad + lh * (i + 0.5)));
+  // light and shade inside the letters, so the glyph texture has something to follow
+  g.globalCompositeOperation = 'source-atop';
+  const rnd = mulberry(hh * 97 + raw.length);
+  for (let i = 0; i < 9; i++) { const x = rnd() * c.width, y = rnd() * c.height, r = size * (0.35 + rnd() * 0.6), rg = g.createRadialGradient(x, y, 0, x, y, r), lite = i % 3 !== 2; rg.addColorStop(0, lite ? 'rgba(255,255,255,.55)' : 'rgba(0,0,20,.5)'); rg.addColorStop(1, lite ? 'rgba(255,255,255,0)' : 'rgba(0,0,20,0)'); g.fillStyle = rg; g.fillRect(x - r, y - r, r * 2, r * 2); }
+  g.lineWidth = 5; g.strokeStyle = 'rgba(255,255,255,.14)'; for (let x = -c.height; x < c.width; x += 34) { g.beginPath(); g.moveTo(x, c.height); g.lineTo(x + c.height * 0.6, 0); g.stroke(); }
+  g.globalCompositeOperation = 'source-over';
+  const name = cleanName(lines.join('-'));
+  return { kind:'image', key:'text', text: lines.join('|'), name: name === 'IMAGE' ? 'TEXT' : name, seed: seedOf(raw, raw.length), w: c.width, h: c.height, animated:false, sway:false, info:'text', draw(g2) { g2.drawImage(c, 0, 0); } };
+}
+async function cameraSource() {
+  const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode:'user' }, audio:false });
+  const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.srcObject = stream;
+  await new Promise((ok, no) => { v.onloadeddata = ok; v.onerror = () => no(new Error('camera')); });
+  await v.play().catch(() => {});
+  return { kind:'video', key:'camera', live:true, name:'CAMERA', seed: seedOf('camera', Date.now() & 0xffff), w: v.videoWidth, h: v.videoHeight, animated:true, sway:false, info:'live camera',
+    stop() { stream.getTracks().forEach(x => x.stop()); },
+    draw(g) { g.save(); g.translate(v.videoWidth, 0); g.scale(-1, 1); g.drawImage(v, 0, 0, v.videoWidth, v.videoHeight); g.restore(); } };
+}
+// how much the live picture changed since the last frame; movement plays notes
+function feelMotion(t) {
+  if (!st.prevL || st.prevL.length !== Cl.length) { st.prevL = new Float32Array(Cl.length); st.motion = 0; }
+  let d = 0; for (let c = 0; c < Cl.length; c++) { d += Math.abs(Cl[c] - st.prevL[c]); st.prevL[c] = Cl[c]; }
+  st.motion = lerp(st.motion, d / Cl.length, 0.35);
+  if (st.motion > 0.03 && t > (st.motionAt || 0)) { st.motionAt = t + clamp(0.5 - st.motion * 4, 0.14, 0.5); music.ping(Math.random()); }
+}
+
+/* ------------------------------------------------------------------ share link */
+const P0 = Object.assign({}, P), HOME = 'https://winchxyz.github.io/glyph-bloom/';
+function shareLink() {
+  const o = {}; for (const k in P) if (P[k] !== P0[k] && k !== 'volume' && k !== 'showMask' && k !== 'look') o[k] = P[k];
+  if (base.text) o._x = base.text; else if (base.kind === 'mesh' && base.key) o._t = base.key;
+  const b = btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return (window.claude || !/^https?:$/.test(location.protocol) ? HOME : location.origin + location.pathname) + '#s=' + b;
+}
+function loadShared() {
+  const m = /[#&]s=([\w-]+)/.exec(location.hash); if (!m) return;
+  try {
+    const o = JSON.parse(decodeURIComponent(escape(atob(m[1].replace(/-/g, '+').replace(/_/g, '/')))));
+    for (const k in o) if (k in P0 && typeof o[k] === typeof P0[k]) P[k] = o[k];
+    syncUI(); setCharset(); setStage(); canvas.classList.toggle('alpha', P.alpha);
+    for (const b of $('looks').children) b.setAttribute('aria-pressed', 'false');
+    const tpl = o._t && g3 && TEMPLATES.find(x => x[0] === o._t);
+    if (typeof o._x === 'string') setSource(textSource(o._x)); else if (tpl) setSource(tpl[2]()); else applySource(true);
+  } catch (e) { /* a broken link just opens the default picture */ }
+}
+
+/* ------------------------------------------------------------------ GIF export: 15-bit histogram, median cut, LZW */
+function gifPalette(hist) {
+  const ids = []; for (let i = 0; i < 32768; i++) if (hist[i]) ids.push(i);
+  const mk = list => { const lo = [31, 31, 31], hi = [0, 0, 0]; let w = 0; for (const b of list) { w += hist[b]; for (let c = 0; c < 3; c++) { const v = (b >> (10 - 5 * c)) & 31; if (v < lo[c]) lo[c] = v; if (v > hi[c]) hi[c] = v; } } let ax = 0; for (let c = 1; c < 3; c++) if (hi[c] - lo[c] > hi[ax] - lo[ax]) ax = c; return { list, w, ax, range: hi[ax] - lo[ax] }; };
+  const boxes = [mk(ids)];
+  while (boxes.length < 255) {
+    let best = -1, score = 0; boxes.forEach((b, i) => { const s2 = b.list.length > 1 ? (b.range + 0.5) * Math.pow(b.w, 0.3) : 0; if (s2 > score) { score = s2; best = i; } });
+    if (best < 0) break;
+    const b = boxes[best], sh = 10 - 5 * b.ax; b.list.sort((x, y) => ((x >> sh) & 31) - ((y >> sh) & 31));
+    let acc = 0, cut = 1; for (let i = 0; i < b.list.length - 1; i++) { acc += hist[b.list[i]]; cut = i + 1; if (acc >= b.w / 2) break; }
+    boxes.splice(best, 1, mk(b.list.slice(0, cut)), mk(b.list.slice(cut)));
+  }
+  const pal = new Uint8Array(768), lut = new Uint8Array(32768);
+  boxes.forEach((b, i) => { let r = 0, g = 0, bl = 0; for (const id of b.list) { const w = hist[id]; r += ((id >> 10) & 31) * w; g += ((id >> 5) & 31) * w; bl += (id & 31) * w; lut[id] = i; } const w = b.w || 1; pal[i * 3] = Math.min(255, r / w * 8.226); pal[i * 3 + 1] = Math.min(255, g / w * 8.226); pal[i * 3 + 2] = Math.min(255, bl / w * 8.226); });
+  return { pal, lut };
+}
+function gifLZW(idx) {
+  const HS = 16384, keys = new Int32Array(HS), vals = new Int16Array(HS), buf = [];
+  let size = 9, next = 258, cur = 0, bits = 0;
+  const emit = c => { cur |= c << bits; bits += size; while (bits >= 8) { buf.push(cur & 255); cur >>>= 8; bits -= 8; } };
+  emit(256); keys.fill(-1);
+  let p = idx[0];
+  for (let i = 1; i < idx.length; i++) {
+    const k = idx[i], key = (p << 8) | k; let h = Math.imul(key, 0x9E3779B1) >>> 18;
+    while (keys[h] !== -1 && keys[h] !== key) h = (h + 1) & (HS - 1);
+    if (keys[h] === key) { p = vals[h]; continue; }
+    emit(p);
+    if (next < 4096) { keys[h] = key; vals[h] = next++; if (next > (1 << size) && size < 12) size++; }
+    else { emit(256); keys.fill(-1); next = 258; size = 9; }
+    p = k;
+  }
+  emit(p); emit(257); if (bits > 0) buf.push(cur & 255);
+  const out = new Uint8Array(buf.length + Math.ceil(buf.length / 255) + 1); let o = 0;
+  for (let i = 0; i < buf.length; i += 255) { const n = Math.min(255, buf.length - i); out[o++] = n; for (let j = 0; j < n; j++) out[o++] = buf[i + j]; }
+  out[o] = 0; return out;
+}
+let gifBusy = false;
+async function makeGif(secs, onProgress) {
+  const dt = 0.08, n = Math.round(secs / dt), gw = canvas.width >= canvas.height ? 560 : 448, gh = Math.round(gw * canvas.height / canvas.width);
+  const tc = document.createElement('canvas'); tc.width = gw; tc.height = gh; const tg = tc.getContext('2d', { willReadFrequently:true });
+  const hist = new Uint32Array(32768), frames = [], clear = P.alpha, wasPaused = paused, grain = P.grain, live = src.kind === 'video' || (base && base.kind === 'video');
+  const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  paused = true; P.grain = 0;
+  try {
+    for (let f = 0; f < n; f++) {
+      advance(dt); render(); tg.clearRect(0, 0, gw, gh); tg.drawImage(canvas, 0, 0, gw, gh);
+      const d = tg.getImageData(0, 0, gw, gh).data, fr = new Uint16Array(gw * gh);
+      for (let y = 0, o = 0, q = 0; y < gh; y++) for (let x = 0; x < gw; x++, o += 4, q++) {
+        if (clear && d[o + 3] < 110) { fr[q] = 0x8000; continue; }
+        const dz = bayer[(y & 3) * 4 + (x & 3)] / 2 - 3.75, r = clamp(d[o] + dz, 0, 255) >> 3, g = clamp(d[o + 1] + dz, 0, 255) >> 3, b = clamp(d[o + 2] + dz, 0, 255) >> 3, id = r << 10 | g << 5 | b;
+        fr[q] = id; hist[id]++;
+      }
+      frames.push(fr);
+      if (f % 3 === 0 || live) { onProgress(f / n * 0.6); await new Promise(r => setTimeout(r, live ? dt * 1000 : 0)); }
+    }
+  } finally { P.grain = grain; paused = wasPaused; last = performance.now(); }
+  const { pal, lut } = gifPalette(hist), parts = [];
+  const head = new Uint8Array(13 + 768 + 19); head.set([71, 73, 70, 56, 57, 97, gw & 255, gw >> 8, gh & 255, gh >> 8, 0xF7, 0, 0]); head.set(pal, 13);
+  head.set([0x21, 0xFF, 11, 78, 69, 84, 83, 67, 65, 80, 69, 50, 46, 48, 3, 1, 0, 0, 0], 13 + 768); parts.push(head);
+  const idx = new Uint8Array(gw * gh);
+  for (let f = 0; f < n; f++) {
+    const fr = frames[f]; for (let q = 0; q < fr.length; q++) idx[q] = fr[q] === 0x8000 ? 255 : lut[fr[q]];
+    parts.push(new Uint8Array([0x21, 0xF9, 4, clear ? 9 : 0, 8, 0, 255, 0, 0x2C, 0, 0, 0, 0, gw & 255, gw >> 8, gh & 255, gh >> 8, 0, 8]), gifLZW(idx));
+    frames[f] = null;
+    if (f % 4 === 0) { onProgress(0.6 + f / n * 0.4); await new Promise(r => setTimeout(r, 0)); }
+  }
+  parts.push(new Uint8Array([0x3B]));
+  return new Blob(parts, { type:'image/gif' });
+}
 
 /* ------------------------------------------------------------------ character sets and looks */
 const SET_SLOTS = { blocks:[0, 44, 45, 46, 47, 48], dots:[0, 50, 51, 52, 53, 54, 55, 56, 57], binary:[G.D0, G.D0 + 1], digits:[0, 1, 2, 3, 4, 5, 6, 7, 8, 9].map(d => G.D0 + d) };
@@ -1546,6 +1711,7 @@ function onParam(k) {
   else if (k === 'charset' || k === 'custom') setCharset();
   else if (k === 'volume') music.volume();
   else if (k === 'mood') music.restart();
+  else if (k === 'alpha') canvas.classList.toggle('alpha', P.alpha);
   if (LOOK_BASE.hasOwnProperty(k)) for (const b of $('looks').children) b.setAttribute('aria-pressed', 'false');
 }
 function wire() {
@@ -1565,6 +1731,22 @@ function wire() {
     const read = () => { P[k] = el.type === 'checkbox' ? el.checked : num ? +el.value : el.value; onParam(k); };
     el.addEventListener(el.type === 'range' || el.type === 'text' ? 'input' : 'change', read);
   }
+  const makeWord = async () => { const v = $('word').value.trim(); if (!v) return; try { await document.fonts.load('800 40px Inter'); } catch (e) {} setSource(textSource(v)); say(''); };
+  $('mkword').onclick = makeWord; $('word').addEventListener('keydown', e => { if (e.key === 'Enter') makeWord(); });
+  $('cam').hidden = !!window.claude || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+  $('cam').onclick = async () => { try { say('Waiting for the camera …'); setSource(await cameraSource()); say('Live. With the soundtrack on, movement plays notes.'); } catch (e) { say('The camera is blocked or missing.', true); } };
+  $('depthBtn').onclick = () => { if (base.depth) { base.depth = null; applySource(false); } else $('depthFile').click(); };
+  $('depthFile').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { base.depth = await createImageBitmap(f); P.three = true; applySource(false); say('Depth map added. Drag the stage to turn it.'); } catch (err) { say('Could not read that depth map.', true); } };
+  $('gif').onclick = async () => {
+    if (gifBusy) return; gifBusy = true;
+    try { const b = await makeGif(6, v => say('Making GIF … ' + Math.round(v * 100) + '%')); const ok = await saveFile(fileStem() + '.gif', b); say(ok ? 'GIF ready · ' + (b.size / 1048576).toFixed(1) + ' MB' : 'Save cancelled.'); }
+    catch (e) { say('Could not make the GIF.', true); }
+    gifBusy = false;
+  };
+  $('link').onclick = () => {
+    const url = shareLink(), show = () => { const el = $('linkout'); el.hidden = false; el.value = url; el.focus(); el.select(); say('Copy the link above.'); };
+    try { navigator.clipboard.writeText(url).then(() => say('Link copied.'), show); } catch (e) { show(); }
+  };
   $('replay').onclick = restart;
   $('png').onclick = () => { render(); canvas.toBlob(async b => { if (b) { const ok = await saveFile(fileStem() + '.png', b); say(ok ? 'PNG ready · ' + canvas.width + '×' + canvas.height : 'Save cancelled.'); } }, 'image/png'); };
   $('record').onclick = () => rec ? stopRecording() : startRecording();
@@ -1587,15 +1769,15 @@ function wire() {
   addEventListener('dragover', e => e.preventDefault());
   addEventListener('dragleave', () => { if (--depth <= 0) { depth = 0; drop.hidden = true; } });
   addEventListener('drop', e => { e.preventDefault(); depth = 0; drop.hidden = true; openFile(e.dataTransfer.files[0]); });
-  addEventListener('paste', e => { if (e.target && e.target.id === 'custom') return; const f = e.clipboardData && e.clipboardData.files[0]; if (f) openFile(f); });
+  addEventListener('paste', e => { if (e.target && e.target.tagName === 'INPUT') return; const f = e.clipboardData && e.clipboardData.files[0]; if (f) openFile(f); });
   document.addEventListener('visibilitychange', () => { last = performance.now(); });
 }
 
 if (!gl) { say('This browser has no WebGL 2, so the stage cannot draw.', true); }
 else {
-  initGL(); setStage(); wire(); setSource(irisSource());
+  initGL(); setStage(); wire(); setSource(irisSource()); loadShared();
   const m = /[#&]t=([\d.]+)/.exec(location.hash);
-  window.GB = { P, st, orbit, music, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); }, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
+  window.GB = { P, st, orbit, music, link: shareLink, text(t) { setSource(textSource(t)); }, depth(bmp) { base.depth = bmp; P.three = true; applySource(false); }, async gif(sec) { const u = new Uint8Array(await (await makeGif(sec, () => {})).arrayBuffer()); let x = ''; for (let i = 0; i < u.length; i += 32768) x += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(x); }, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); }, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
   if (m) window.GB.seek(+m[1]);
   requestAnimationFrame(loop);
 }

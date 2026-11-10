@@ -36,7 +36,10 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 ![Looks](docs/looks.jpg)
 
 - **Your own files.** Drop, paste or open a PNG, JPG, WebP, GIF or a short MP4/WebM. GIFs and videos stay animated.
+- **Type a word.** Any text becomes a glowing object that grows in, and it works in 3D too. Use `|` for a line break.
+- **Live camera.** Your webcam as live glyph art. With the soundtrack on, movement plays notes.
 - **3D object.** Tick *3D object* and the picture becomes a rounded relief with a front and a back. Drag to turn it, scroll to zoom, or let it turn by itself.
+- **Depth map.** Add a grey depth picture (white is near) and the 3D object gets real depth instead of a rounded guess.
 - **Nine templates.** Iris, Planet, Jellyfish, Helix, Knot, Heart, Crystal, Amphora and Mushroom. All are generated in code, so there are no asset files.
 - **Grow-in intro.** The subject grows from its lowest point upward, with a ruler counting 0.05 to 0.96 beside the tip.
 - **Background removal.** Transparent and single-colour backgrounds are cut automatically and the subject is framed to fit the stage. The panel says what it decided, a *Cut strength* slider tunes it, and *Show what is kept* paints the kept area solid so the cut is visible. Nothing is ever cropped: long pictures and turning 3D objects always stay inside the frame.
@@ -45,6 +48,8 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 - **Fine control.** Character size, edge lines, shimmer, outline, colour (from the file or five palettes), vividness, contrast, glow, scanlines, grain, lens fringe, ink on paper. Every control has a one-line explanation.
 - **Soundtrack.** A generative score composed from the art: the dominant colour picks the key, brightness the mode, detail the tempo, the file name the melody. Pads, bass, plucks, bells and optional drums run through a reverb and a ping-pong delay. The intro, ruler ticks, trackers and pulses each trigger a sound. Five moods, endless variations, WAV export.
 - **Export.** Save a PNG up to 2048 px wide, or record a 12 to 57 second video with the soundtrack (MP4 where the browser can, WebM otherwise).
+- **GIF and share link.** Save a 6 second looping GIF, or copy a link that carries every setting and the template or text.
+- **Transparent background.** PNG, GIF and WebM video without the black, ready to lay over other footage.
 - **Private.** Files never leave the browser. There is nothing to upload to.
 
 <p align="center">

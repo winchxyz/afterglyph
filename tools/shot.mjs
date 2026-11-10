@@ -18,12 +18,12 @@ const browser = await chromium.launch({ args: ['--use-angle=swiftshader', '--ena
 const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
 page.on('console', m => { if (m.type() === 'error') console.log('console error:', m.text()); });
 page.on('pageerror', e => console.log('page error:', e.message));
-await page.goto(pathToFileURL(join(here, '..', 'index.html')).href);
+await page.goto(pathToFileURL(join(here, '..', 'index.html')).href + (opt.hash ? '#' + rest.find(a => a.startsWith('hash=')).slice(5) : ''));
 await page.waitForFunction(() => window.GB);
 await page.evaluate(() => window.GB.pause(true));
 const set = {};
 for (const k of ['density', 'glow', 'palette', 'bg', 'tol', 'format', 'res', 'charset', 'custom', 'strokes', 'shimmer', 'sat', 'contrast', 'scan', 'grain', 'fringe', 'mood', 'variation']) if (k in opt) set[k] = isNaN(+opt[k]) ? opt[k] : +opt[k];
-for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin', 'paper', 'outline', 'showMask']) if (k in opt) set[k] = opt[k] === '1';
+for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin', 'paper', 'outline', 'showMask', 'alpha']) if (k in opt) set[k] = opt[k] === '1';
 if (!('res' in set)) set.res = 1;
 await page.evaluate(s => { Object.assign(window.GB.P, s); window.GB.stage(); }, set);
 if (opt.tpl) await page.evaluate(k => window.GB.template(k), opt.tpl);
@@ -34,6 +34,11 @@ if (opt.file) {
     const type = /\.gif$/i.test(name) ? 'image/gif' : /\.png$/i.test(name) ? 'image/png' : 'image/jpeg';
     window.GB.setSource(await window.GB.loadFile(new File([u], name, { type })));
   }, { bytes, name: basename(opt.file) });
+}
+if (opt.text) await page.evaluate(t => window.GB.text(t), opt.text.replace(/_/g, ' '));
+if (opt.depth) {
+  const bytes = readFileSync(opt.depth).toString('base64');
+  await page.evaluate(async b => { const bin = atob(b), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); window.GB.depth(await createImageBitmap(new Blob([u]))); }, bytes);
 }
 if (opt.look) await page.evaluate(k => window.GB.look(k), opt.look);
 await page.evaluate(() => window.GB.sync());
@@ -55,6 +60,12 @@ if (opt.frames) {
     writeFileSync(join(outDir, `${tag}_f${String(i).padStart(3, '0')}.png`), Buffer.from(url.split(',')[1], 'base64'));
   }
 }
+if (opt.gif) {
+  const t0 = Date.now(), b64 = await page.evaluate(sec => window.GB.gif(sec), +opt.gif);
+  writeFileSync(join(outDir, `${tag}.gif`), Buffer.from(b64, 'base64'));
+  console.log('gif', (b64.length * 0.75 / 1048576).toFixed(2) + ' MB', (Date.now() - t0) + ' ms');
+}
+if (opt.link) console.log('link:', await page.evaluate(() => window.GB.link()));
 if (opt.wav) {
   // offline render of the soundtrack for this source, for level and spectrum checks
   const b64 = await page.evaluate(async sec => {
