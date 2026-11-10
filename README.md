@@ -40,6 +40,7 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 - **Live camera.** Your webcam as live glyph art. With the soundtrack on, movement plays notes.
 - **3D object.** Tick *3D object* and the picture becomes a rounded relief with a front and a back. Drag to turn it, scroll to zoom, or let it turn by itself.
 - **Subject lift.** On a picture with a real background, 3D finds the subject by itself, turns only the subject and keeps the background flat and still behind it. The area under the subject is painted in, so no double shows when it turns.
+- **AI depth.** One button runs a small Depth Anything V2 model in the browser (27 MB, downloaded once) and gives the 3D object real depth. The picture never leaves the device.
 - **Depth map.** Add a grey depth picture (white is near) and the 3D object gets real depth instead of a rounded guess.
 - **Nine templates.** Iris, Planet, Jellyfish, Helix, Knot, Heart, Crystal, Amphora and Mushroom. All are generated in code, so there are no asset files.
 - **Grow-in intro.** The subject grows from its lowest point upward, with a ruler counting 0.05 to 0.96 beside the tip.

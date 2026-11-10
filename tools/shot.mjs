@@ -40,6 +40,12 @@ if (opt.depth) {
   const bytes = readFileSync(opt.depth).toString('base64');
   await page.evaluate(async b => { const bin = atob(b), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); window.GB.depth(await createImageBitmap(new Blob([u]))); }, bytes);
 }
+if (opt.ai) {
+  // runs the on-device depth model (needs network for the first download) and saves the depth picture
+  const t0 = Date.now(), url = await page.evaluate(() => window.GB.ai());
+  writeFileSync(join(outDir, `${opt.tag || 'ai'}_depth.png`), Buffer.from(url.split(',')[1], 'base64'));
+  console.log('ai depth', (Date.now() - t0) + ' ms');
+}
 if (opt.look) await page.evaluate(k => window.GB.look(k), opt.look);
 await page.evaluate(() => window.GB.sync());
 if (opt.zoom) await page.evaluate(z => { window.GB.orbit.zoom = z; }, +opt.zoom);

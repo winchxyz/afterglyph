@@ -167,6 +167,8 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
       <p class="meta" id="liftnote"></p>
       <label class="t" for="spin"><input type="checkbox" id="spin" data-k="spin" checked> Turn by itself</label>
       <p class="hint" id="turnhint">Drag the stage to turn it. Scroll to zoom.</p>
+      <button id="aiBtn">Work out depth with AI</button>
+      <p class="hint" id="aiHint">Gives the 3D object real depth: nose nearer, shoulders further. The first use downloads a 27 MB model; it then runs on your device and the picture is not uploaded.</p>
       <button id="depthBtn">Add depth map</button>
       <input type="file" id="depthFile" accept="image/*" hidden>
       <p class="hint">Optional. A grey picture of the same shot where white is near and black is far. It gives the 3D object real depth instead of a rounded guess.</p>
@@ -957,7 +959,9 @@ function reliefSource(base, info) {
     const dc = document.createElement('canvas'); dc.width = gw; dc.height = gh; const dg = dc.getContext('2d', { willReadFrequently:true });
     dg.scale(gw / cr.w, gh / cr.h); dg.translate(-cr.x, -cr.y); dg.drawImage(dm, 0, 0, base.w, base.h);
     const q = dg.getImageData(0, 0, gw, gh).data;
-    for (let c = 0; c < n; c++) H[c] = inside[c] ? 0.03 + (0.299 * q[c * 4] + 0.587 * q[c * 4 + 1] + 0.114 * q[c * 4 + 2]) / 255 * 0.42 : 0;
+    let zl = 255, zh = 0; const Z = c => 0.299 * q[c * 4] + 0.587 * q[c * 4 + 1] + 0.114 * q[c * 4 + 2];
+    for (let c = 0; c < n; c++) if (inside[c]) { const z = Z(c); if (z < zl) zl = z; if (z > zh) zh = z; }
+    for (let c = 0; c < n; c++) H[c] = inside[c] ? 0.03 + (Z(c) - zl) / Math.max(8, zh - zl) * 0.42 : 0;
     blur(H, T); blur(T, H);
   }
   const kk = Math.min(0.895 / asp, 1.12), ax = kk * asp, ay = kk,   // the picture fills up to 95% of a 4:5 view, with room to turn
@@ -1524,7 +1528,7 @@ function applySource(fresh) {
   if (fresh) restart();
   const turning = src.kind === 'mesh';
   canvas.classList.toggle('turn', turning); $('three').checked = turning; $('three').disabled = base.kind === 'mesh' || !g3;
-  $('depthBtn').textContent = base.depth ? 'Remove depth map' : 'Add depth map'; $('depthBtn').disabled = base.kind === 'mesh' || !g3;
+  $('depthBtn').textContent = base.depth ? 'Remove depth map' : 'Add depth map'; $('depthBtn').disabled = $('aiBtn').disabled = base.kind === 'mesh' || !g3;
   $('spin').disabled = !turning; $('turnhint').textContent = turning ? 'Drag the stage to turn it. Scroll to zoom.' : 'Tick 3D object to turn any picture into a relief you can spin.';
 }
 function setSource(s) {
@@ -1620,6 +1624,26 @@ function feelMotion(t) {
   let d = 0; for (let c = 0; c < Cl.length; c++) { d += Math.abs(Cl[c] - st.prevL[c]); st.prevL[c] = Cl[c]; }
   st.motion = lerp(st.motion, d / Cl.length, 0.35);
   if (st.motion > 0.03 && t > (st.motionAt || 0)) { st.motionAt = t + clamp(0.5 - st.motion * 4, 0.14, 0.5); music.ping(Math.random()); }
+}
+
+/* ------------------------------------------------------------------ AI depth: a small Depth Anything model, run on this device */
+let depthPipe = null;
+async function aiDepth(note) {
+  if (!depthPipe) {
+    note('Loading the depth model …');
+    const T = await import('https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.8.1');
+    T.env.allowLocalModels = false;
+    depthPipe = await T.pipeline('depth-estimation', 'onnx-community/depth-anything-v2-small', { dtype:'q8', device:'wasm',
+      progress_callback: p => { if (p.status === 'progress' && p.total > 2e6) note('Downloading the depth model … ' + Math.round(p.progress) + '%'); } });
+  }
+  note('Estimating depth …'); await new Promise(r => setTimeout(r, 30));
+  const k = Math.min(1, 518 / Math.max(base.w, base.h)), c = document.createElement('canvas'); c.width = Math.max(8, Math.round(base.w * k)); c.height = Math.max(8, Math.round(base.h * k));
+  const g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, c.width, c.height); g.scale(c.width / base.w, c.height / base.h); base.draw(g, 0, 99);
+  const d = (await depthPipe(c.toDataURL('image/png'))).depth, oc = document.createElement('canvas'); oc.width = d.width; oc.height = d.height;
+  const og = oc.getContext('2d'), im = og.createImageData(d.width, d.height), ch = d.channels || 1;
+  for (let i = 0; i < d.width * d.height; i++) { const v = d.data[i * ch]; im.data[i * 4] = im.data[i * 4 + 1] = im.data[i * 4 + 2] = v; im.data[i * 4 + 3] = 255; }
+  og.putImageData(im, 0, 0);
+  return createImageBitmap(oc);
 }
 
 /* ------------------------------------------------------------------ share link */
@@ -1802,6 +1826,14 @@ function wire() {
   $('mkword').onclick = makeWord; $('word').addEventListener('keydown', e => { if (e.key === 'Enter') makeWord(); });
   $('cam').hidden = !!window.claude || !(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
   $('cam').onclick = async () => { try { say('Waiting for the camera …'); setSource(await cameraSource()); say('Live. With the soundtrack on, movement plays notes.'); } catch (e) { say('The camera is blocked or missing.', true); } };
+  $('aiBtn').hidden = $('aiHint').hidden = !!window.claude;
+  let aiBusy = false;
+  $('aiBtn').onclick = async () => {
+    if (aiBusy || base.kind === 'mesh') return; aiBusy = true; const b0 = base;
+    try { const bmp = await aiDepth(m => say(m)); if (base === b0) { base.depth = bmp; P.three = true; applySource(false); say('Depth ready. Drag the stage to turn it.'); } }
+    catch (e) { depthPipe = null; say('The depth model could not load. Check the connection and try again.', true); }
+    aiBusy = false;
+  };
   $('depthBtn').onclick = () => { if (base.depth) { base.depth = null; applySource(false); } else $('depthFile').click(); };
   $('depthFile').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { base.depth = await createImageBitmap(f); P.three = true; applySource(false); say('Depth map added. Drag the stage to turn it.'); } catch (err) { say('Could not read that depth map.', true); } };
   $('gif').onclick = async () => {
@@ -1844,7 +1876,7 @@ if (!gl) { say('This browser has no WebGL 2, so the stage cannot draw.', true); 
 else {
   initGL(); setStage(); wire(); setSource(irisSource()); loadShared();
   const m = /[#&]t=([\d.]+)/.exec(location.hash);
-  window.GB = { P, st, orbit, music, link: shareLink, text(t) { setSource(textSource(t)); }, depth(bmp) { base.depth = bmp; P.three = true; applySource(false); }, async gif(sec) { const u = new Uint8Array(await (await makeGif(sec, () => {})).arrayBuffer()); let x = ''; for (let i = 0; i < u.length; i += 32768) x += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(x); }, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); }, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
+  window.GB = { P, st, orbit, music, async ai() { const notes = []; const bmp = await aiDepth(m => notes.push(m)); base.depth = bmp; P.three = true; applySource(false); const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; c.getContext('2d').drawImage(bmp, 0, 0); return c.toDataURL('image/png'); }, link: shareLink, text(t) { setSource(textSource(t)); }, depth(bmp) { base.depth = bmp; P.three = true; applySource(false); }, async gif(sec) { const u = new Uint8Array(await (await makeGif(sec, () => {})).arrayBuffer()); let x = ''; for (let i = 0; i < u.length; i += 32768) x += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(x); }, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); }, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
   if (m) window.GB.seek(+m[1]);
   requestAnimationFrame(loop);
 }
