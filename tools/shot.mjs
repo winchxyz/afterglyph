@@ -23,7 +23,7 @@ await page.waitForFunction(() => window.GB);
 await page.evaluate(() => window.GB.pause(true));
 const set = {};
 for (const k of ['density', 'glow', 'palette', 'bg', 'tol', 'format', 'res', 'charset', 'custom', 'strokes', 'shimmer', 'sat', 'contrast', 'scan', 'grain', 'fringe', 'mood', 'variation']) if (k in opt) set[k] = isNaN(+opt[k]) ? opt[k] : +opt[k];
-for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin', 'paper', 'outline', 'showMask', 'alpha']) if (k in opt) set[k] = opt[k] === '1';
+for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin', 'paper', 'outline', 'showMask', 'alpha', 'lift']) if (k in opt) set[k] = opt[k] === '1';
 if (!('res' in set)) set.res = 1;
 await page.evaluate(s => { Object.assign(window.GB.P, s); window.GB.stage(); }, set);
 if (opt.tpl) await page.evaluate(k => window.GB.template(k), opt.tpl);
