@@ -35,6 +35,8 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 
 ![Looks](docs/looks.jpg)
 
+![More looks](docs/looks2.jpg)
+
 - **Your own files.** Drop, paste or open a PNG, JPG, WebP, GIF or a short MP4/WebM. GIFs and videos stay animated.
 - **Type a word.** Any text becomes a glowing object that grows in, and it works in 3D too. Use `|` for a line break.
 - **Live camera.** Your webcam as live glyph art. With the soundtrack on, movement plays notes.
@@ -45,9 +47,11 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 - **Nine templates.** Iris, Planet, Jellyfish, Helix, Knot, Heart, Crystal, Amphora and Mushroom. All are generated in code, so there are no asset files.
 - **Grow-in intro.** The subject grows from its lowest point upward, with a ruler counting 0.05 to 0.96 beside the tip.
 - **Background removal.** Transparent and single-colour backgrounds are cut automatically and the subject is framed to fit the stage. The panel says what it decided, a *Cut strength* slider tunes it, and *Show what is kept* paints the kept area solid so the cut is visible. Nothing is ever cropped: long pictures and turning 3D objects always stay inside the frame.
-- **Nine looks.** Signal, Terminal, Halftone, Blueprint, Matrix, Blocks, Amber CRT, Newsprint and Typewriter. One click sets characters, colour and screen effects.
+- **Fifteen looks.** Signal, Terminal, Matrix, Amber CRT, Blueprint, Halftone, Blocks, Vapor, Glitch, Prism, Thermal, Gold, Kaleido, Newsprint and Typewriter. One click sets characters, colour and screen effects. *Surprise me* (or the R key) rolls a random one, and you can save your own.
 - **Character sets.** Mixed symbols, classic ASCII, the full 70-character ramp, halftone dots, shade blocks, lines only, digits, binary, or your own characters (sorted from light to heavy automatically).
-- **Fine control.** Character size, edge lines, shimmer, outline, colour (from the file or five palettes), vividness, contrast, glow, scanlines, grain, lens fringe, ink on paper. Every control has a one-line explanation.
+- **Colour.** From the file, thirteen palettes or your own three colours, plus a backdrop colour, hue shift, rainbow spread and colour drift over time.
+- **Effects.** Glow, scanlines, grain, lens fringe, screen curve, glitch, digit rain, mirror and kaleidoscope, ink on paper. Five intro styles and a speed control.
+- **Tabbed panel.** Source, Look, Colour, Motion, Sound, Save. Every slider shows its value, explains itself in one line and resets on double-click. Space pauses.
 - **Soundtrack.** A generative score composed from the art: the dominant colour picks the key, brightness the mode, detail the tempo, the file name the melody. Pads, bass, plucks, bells and optional drums run through a reverb and a ping-pong delay. The intro, ruler ticks, trackers and pulses each trigger a sound. Five moods, endless variations, WAV export.
 - **Export.** Save a PNG up to 2048 px wide, or record a 12 to 57 second video with the soundtrack (MP4 where the browser can, WebM otherwise).
 - **GIF and share link.** Save a 6 second looping GIF, or copy a link that carries every setting and the template or text.

@@ -13,20 +13,20 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.45;-webkit-font-smoothing:antialiased}
-.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 288px;gap:20px;padding-block:16px;
+.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;padding-block:16px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .stage{position:relative;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
 #stage{display:block;max-width:100%;max-height:100%;border-radius:3px;background:var(--ink)}
 .drop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:1px dashed var(--accent);
   border-radius:6px;background:color-mix(in srgb,var(--ink) 82%,transparent);font-family:var(--mono);font-size:12px;
   letter-spacing:.08em;text-transform:uppercase;color:var(--accent);pointer-events:none}
-.panel{min-width:0;display:flex;flex-direction:column;gap:18px;overflow-y:auto;padding-right:2px}
+.panel{min-width:0;display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:2px}
 .panel h1{font-size:15px;font-weight:600;margin:0;letter-spacing:.01em}
 .panel .lede{margin:4px 0 0;color:var(--muted)}
 .group{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
 .row{display:flex;gap:8px;flex-wrap:wrap}
 .row > *{flex:1 1 0;min-width:0}
-label.f{display:grid;grid-template-columns:92px minmax(0,1fr);align-items:center;gap:10px;color:var(--muted)}
+label.f{display:grid;grid-template-columns:92px minmax(0,1fr) auto;align-items:center;gap:10px;color:var(--muted)}
 label.t{display:flex;align-items:center;gap:8px;color:var(--text);cursor:pointer}
 button,select{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:6px;
   padding:7px 10px;min-height:32px;cursor:pointer}
@@ -52,6 +52,19 @@ details.group > summary:focus-visible{outline:2px solid var(--accent);outline-of
 input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;min-width:0}
 #stage.alpha{background:repeating-conic-gradient(#1c1e2b 0 25%,#11121a 0 50%) 0 0/22px 22px}
 #mkword{flex:0 0 auto}
+.val{font-family:var(--mono);font-size:10.5px;color:var(--muted);min-width:30px;text-align:right}
+.bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-bottom:1px solid var(--line)}
+.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:8px 0;font-size:11.5px;color:var(--muted);min-height:34px}
+.tabs button:hover{color:var(--text)}
+.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
+.tab{display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
+.tab > h2{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 0 0;padding-top:14px;border-top:1px solid var(--line)}
+.looks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.looks button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 6px;font-size:10.5px;color:var(--muted);overflow:hidden}
+.looks button[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
+.smp{font-family:var(--mono);font-size:13px;letter-spacing:.06em;white-space:nowrap}
+input[type=color]{width:100%;height:30px;padding:2px;background:var(--field);border:1px solid var(--line);border-radius:6px;cursor:pointer}
 #stage.turn{cursor:grab;touch-action:none}
 #stage.turn:active{cursor:grabbing}
 @media (max-width:760px){
@@ -71,10 +84,24 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
   <aside class="panel">
     <div>
       <h1>Glyph Bloom</h1>
-      <p class="lede">Turns an image, GIF or short video into glowing glyph art with its own soundtrack. Drop a file on the stage or pick a template.</p>
+      <p class="lede">Turns a picture, GIF, video or word into glowing glyph art with its own soundtrack.</p>
     </div>
+    <div class="bar">
+      <button id="surprise" title="Shortcut: R">Surprise me</button>
+      <button id="replay">Replay</button>
+      <button id="pause" title="Shortcut: Space">Pause</button>
+    </div>
+    <p class="meta" id="status" aria-live="polite"></p>
+    <nav class="tabs" role="tablist" aria-label="Settings">
+      <button role="tab" data-tab="source">Source</button>
+      <button role="tab" data-tab="look">Look</button>
+      <button role="tab" data-tab="colour">Colour</button>
+      <button role="tab" data-tab="motion">Motion</button>
+      <button role="tab" data-tab="sound">Sound</button>
+      <button role="tab" data-tab="save">Save</button>
+    </nav>
 
-    <div class="group">
+    <section class="tab" data-tab="source">
       <button class="primary" id="open">Open image, GIF or video</button>
       <input type="file" id="file" accept="image/*,video/*" hidden>
       <p class="meta" id="srcinfo">IRIS · built-in</p>
@@ -84,16 +111,38 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
         <button id="mkword">Make</button>
       </div>
       <button id="cam" hidden>Use live camera</button>
-    </div>
 
-    <details class="group" open>
-      <summary>Look</summary>
-      <p class="hint">A look sets the characters, colour and screen effects in one click. Fine-tune below.</p>
-      <div class="tpl" id="looks" role="group" aria-label="Looks"></div>
-    </details>
+      <h2>Subject</h2>
+      <label class="f" for="bg">Background <select id="bg" data-k="bg">
+        <option value="auto">Auto</option>
+        <option value="none">Keep the whole picture</option>
+        <option value="dark">Remove dark background</option>
+        <option value="light">Remove light background</option>
+      </select></label>
+      <p class="meta" id="bgnote"></p>
+      <label class="f" for="tol" id="tolRow">Cut strength <input type="range" id="tol" data-k="tol" min="0.03" max="0.6" step="0.01" value="0.16"></label>
+      <p class="hint" id="tolHint">How close to the background colour a pixel must be to get removed. Right removes more (cleaner edge, may eat the subject). Left keeps more.</p>
+      <label class="t" for="showMask"><input type="checkbox" id="showMask" data-k="showMask"> Show what is kept</label>
+      <p class="hint">Fills everything that counts as the subject with solid blocks, so you can see the cut.</p>
+      <label class="t" for="invert"><input type="checkbox" id="invert" data-k="invert"> Swap light and dark</label>
+      <p class="hint">Use for dark drawings on a light background.</p>
+      <label class="f" for="mirror">Mirror <select id="mirror" data-k="mirror">
+        <option value="off">Off</option>
+        <option value="two">Left to right</option>
+        <option value="four">Four ways (kaleidoscope)</option>
+      </select></label>
+    </section>
 
-    <details class="group">
-      <summary>Characters</summary>
+    <section class="tab" data-tab="look">
+      <p class="hint">A look sets characters, colour and screen effects in one click. Fine-tune in the other tabs.</p>
+      <div class="looks" id="looks" role="group" aria-label="Looks"></div>
+      <div class="row">
+        <button id="saveLook">Save this look</button>
+        <button id="resetLook">Reset</button>
+      </div>
+      <button id="clearLooks" hidden>Delete my saved looks</button>
+
+      <h2>Characters</h2>
       <label class="f" for="charset">Set <select id="charset" data-k="charset">
         <option value="signal">Signal (mixed symbols)</option>
         <option value="ascii">Classic ASCII  .:-=+*#%@</option>
@@ -113,11 +162,12 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
       <p class="hint">How much of the picture is drawn with / \ | = strokes that follow edges and texture.</p>
       <label class="f" for="shimmer">Shimmer <input type="range" id="shimmer" data-k="shimmer" min="0" max="3" step="0.1" value="1"></label>
       <p class="hint">How many characters keep changing. 0 holds the picture still.</p>
+      <label class="f" for="rain">Rain <input type="range" id="rain" data-k="rain" min="0" max="1" step="0.05" value="0"></label>
+      <p class="hint">Bright drops of digits fall down every column, and the picture shows through their trails.</p>
       <label class="t" for="outline"><input type="checkbox" id="outline" data-k="outline" checked> Thin outline around the subject</label>
-    </details>
+    </section>
 
-    <details class="group">
-      <summary>Colour and screen</summary>
+    <section class="tab" data-tab="colour">
       <label class="f" for="palette">Colour <select id="palette" data-k="palette">
         <option value="source">From the file</option>
         <option value="night">Night blue</option>
@@ -125,42 +175,65 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
         <option value="amber">Amber</option>
         <option value="rose">Rose</option>
         <option value="mono">Silver</option>
+        <option value="cyber">Cyber</option>
+        <option value="vapor">Vapor</option>
+        <option value="sunset">Sunset</option>
+        <option value="ice">Ice</option>
+        <option value="gold">Gold</option>
+        <option value="forest">Forest</option>
+        <option value="thermal">Thermal</option>
+        <option value="blood">Blood</option>
+        <option value="custom">Your own three colours</option>
       </select></label>
+      <div class="row" id="customCols" hidden>
+        <input type="color" id="c1" data-k="c1" value="#3a1c8f" aria-label="Dark colour">
+        <input type="color" id="c2" data-k="c2" value="#ff5fd2" aria-label="Middle colour">
+        <input type="color" id="c3" data-k="c3" value="#fff3b0" aria-label="Light colour">
+      </div>
+      <label class="f" for="back">Backdrop <input type="color" id="back" data-k="back" value="#020205"></label>
+      <p class="hint">The colour behind the characters. Keep it dark so the glow still reads.</p>
       <label class="f" for="sat">Vividness <input type="range" id="sat" data-k="sat" min="0" max="2.6" step="0.05" value="1.5"></label>
       <p class="hint">Colour strength when the colour comes from the file. 0 is grey.</p>
       <label class="f" for="contrast">Contrast <input type="range" id="contrast" data-k="contrast" min="0.4" max="2.5" step="0.05" value="1"></label>
       <p class="hint">Pushes dark parts darker and bright parts brighter, so fewer mid characters.</p>
+      <label class="f" for="hue">Hue shift <input type="range" id="hue" data-k="hue" min="0" max="360" step="5" value="0"></label>
+      <p class="hint">Turns every colour around the colour wheel. Blue becomes pink, then orange, then green.</p>
+      <label class="f" for="rainbow">Rainbow <input type="range" id="rainbow" data-k="rainbow" min="0" max="2" step="0.05" value="0"></label>
+      <p class="hint">Spreads the hue shift across the picture, corner to corner.</p>
+      <label class="f" for="drift">Colour drift <input type="range" id="drift" data-k="drift" min="0" max="3" step="0.1" value="0"></label>
+      <p class="hint">Colours slowly travel around the wheel over time.</p>
+
+      <h2>Screen</h2>
       <label class="f" for="glow">Glow <input type="range" id="glow" data-k="glow" min="0" max="2" step="0.05" value="1"></label>
       <p class="hint">The soft light around bright characters.</p>
       <label class="f" for="scan">Scanlines <input type="range" id="scan" data-k="scan" min="0" max="1" step="0.05" value="0"></label>
       <label class="f" for="grain">Grain <input type="range" id="grain" data-k="grain" min="0" max="4" step="0.1" value="1"></label>
       <label class="f" for="fringe">Lens fringe <input type="range" id="fringe" data-k="fringe" min="0" max="4" step="0.1" value="1"></label>
       <p class="hint">Old-screen effects: dark rows, film noise, and colour split toward the corners.</p>
+      <label class="f" for="curve">Screen curve <input type="range" id="curve" data-k="curve" min="0" max="1" step="0.05" value="0"></label>
+      <p class="hint">Bulges the picture like an old tube TV. The corners round off.</p>
+      <label class="f" for="glitch">Glitch <input type="range" id="glitch" data-k="glitch" min="0" max="1" step="0.05" value="0"></label>
+      <p class="hint">Rows jump sideways and colours tear, a few times a second.</p>
       <label class="t" for="paper"><input type="checkbox" id="paper" data-k="paper"> Ink on paper (light background)</label>
-    </details>
+    </section>
 
-    <details class="group">
-      <summary>Subject</summary>
-      <label class="f" for="bg">Background <select id="bg" data-k="bg">
-        <option value="auto">Auto</option>
-        <option value="none">Keep the whole picture</option>
-        <option value="dark">Remove dark background</option>
-        <option value="light">Remove light background</option>
+    <section class="tab" data-tab="motion">
+      <label class="t" for="intro"><input type="checkbox" id="intro" data-k="intro" checked> Play an intro</label>
+      <label class="f" for="introStyle">Intro style <select id="introStyle" data-k="introStyle">
+        <option value="grow">Grow from the base</option>
+        <option value="scan">Scan from the top</option>
+        <option value="type">Type it out, row by row</option>
+        <option value="centre">Spread from the centre</option>
+        <option value="dissolve">Fade in at random</option>
       </select></label>
-      <p class="meta" id="bgnote"></p>
-      <label class="f" for="tol" id="tolRow">Cut strength <input type="range" id="tol" data-k="tol" min="0.03" max="0.6" step="0.01" value="0.16"></label>
-      <p class="hint" id="tolHint">How close to the background colour a pixel must be to get removed. Right removes more (cleaner edge, may eat the subject). Left keeps more.</p>
-      <label class="t" for="showMask"><input type="checkbox" id="showMask" data-k="showMask"> Show what is kept</label>
-      <p class="hint">Fills everything that counts as the subject with solid blocks, so you can see the cut.</p>
-      <label class="t" for="invert"><input type="checkbox" id="invert" data-k="invert"> Swap light and dark</label>
-      <p class="hint">Use for dark drawings on a light background.</p>
-    </details>
-
-    <details class="group">
-      <summary>Motion and 3D</summary>
-      <label class="t" for="intro"><input type="checkbox" id="intro" data-k="intro" checked> Grow-in intro</label>
+      <p class="hint">How the picture appears. The built-in iris always grows its own way.</p>
+      <label class="f" for="speed">Speed <input type="range" id="speed" data-k="speed" min="0.25" max="2" step="0.05" value="1"></label>
       <label class="t" for="camera"><input type="checkbox" id="camera" data-k="camera" checked> Camera moves</label>
       <label class="t" for="hud"><input type="checkbox" id="hud" data-k="hud" checked> Readouts</label>
+      <label class="f" for="caption">Caption <input type="text" id="caption" data-k="caption" maxlength="24" placeholder="Your own label" autocomplete="off" spellcheck="false"></label>
+      <p class="hint">Replaces the second line in the bottom-left corner. Latin letters and digits.</p>
+
+      <h2>3D</h2>
       <label class="t" for="three"><input type="checkbox" id="three" data-k="three"> 3D object</label>
       <label class="t" for="lift"><input type="checkbox" id="lift" data-k="lift" checked> Lift the subject off the background</label>
       <p class="hint">In 3D the subject is found automatically and turns, while the background stays flat and still behind it.</p>
@@ -171,11 +244,10 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
       <p class="hint" id="aiHint">Gives the 3D object real depth: nose nearer, shoulders further. The first use downloads a 27 MB model; it then runs on your device and the picture is not uploaded.</p>
       <button id="depthBtn">Add depth map</button>
       <input type="file" id="depthFile" accept="image/*" hidden>
-      <p class="hint">Optional. A grey picture of the same shot where white is near and black is far. It gives the 3D object real depth instead of a rounded guess.</p>
-    </details>
+      <p class="hint">Optional. A grey picture of the same shot where white is near and black is far.</p>
+    </section>
 
-    <details class="group" open>
-      <summary>Soundtrack</summary>
+    <section class="tab" data-tab="sound">
       <div class="row">
         <button id="play">Play soundtrack</button>
         <button id="vary">New variation</button>
@@ -191,10 +263,9 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
       <label class="f" for="volume">Volume <input type="range" id="volume" data-k="volume" min="0" max="1" step="0.01" value="0.8"></label>
       <p class="hint">Colour picks the key, brightness the mode, detail the tempo. The intro, ruler ticks, trackers and pulses each have a sound. Recorded videos include it.</p>
       <button id="wav">Save soundtrack (WAV)</button>
-    </details>
+    </section>
 
-    <details class="group" open>
-      <summary>Export</summary>
+    <section class="tab" data-tab="save">
       <label class="f" for="format">Frame <select id="format" data-k="format">
         <option value="4:5">4:5 portrait</option>
         <option value="1:1">1:1 square</option>
@@ -206,17 +277,11 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
         <option value="2" selected>2× (2048 px)</option>
       </select></label>
       <label class="t" for="alpha"><input type="checkbox" id="alpha" data-k="alpha"> Transparent background</label>
-      <p class="hint">PNG, GIF and WebM video are saved without the black, ready to lay over other footage.</p>
+      <p class="hint">PNG, GIF and WebM video are saved without the backdrop, ready to lay over other footage.</p>
       <div class="row">
-        <button id="replay">Replay</button>
         <button id="png">Save PNG</button>
-      </div>
-      <div class="row">
         <button id="gif">Save GIF</button>
-        <button id="link">Copy link</button>
       </div>
-      <input type="text" id="linkout" readonly hidden aria-label="Share link">
-      <p class="hint">The GIF is 6 seconds from this moment. The link carries every setting and the template or text. Your own files stay on your device, so they are not in it.</p>
       <div class="row">
         <button id="record">Record video</button>
         <select id="len" aria-label="Video length">
@@ -226,8 +291,10 @@ input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);backgrou
           <option value="57">57 s</option>
         </select>
       </div>
-      <p class="meta" id="status" aria-live="polite"></p>
-    </details>
+      <button id="link">Copy link to this setup</button>
+      <input type="text" id="linkout" readonly hidden aria-label="Share link">
+      <p class="hint">The GIF is 6 seconds from this moment. The link carries every setting and the template or text. Your own files stay on your device, so they are not in it.</p>
+    </section>
   </aside>
 </div>
 
@@ -338,13 +405,21 @@ function buildAtlas() {
 }
 
 /* ------------------------------------------------------------------ parameters and state */
-const P = { density:146, glow:1, palette:'source', bg:'auto', tol:0.16, invert:false, intro:true, camera:true, hud:true, format:'4:5', res:2, three:false, spin:true, look:'signal', charset:'signal', custom:' .oO0@#', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, scan:0, grain:1, fringe:1, paper:false, showMask:false, mood:'auto', volume:0.8, variation:0, alpha:false, lift:true };
+const P = { density:146, glow:1, palette:'source', bg:'auto', tol:0.16, invert:false, intro:true, camera:true, hud:true, format:'4:5', res:2, three:false, spin:true, look:'signal', charset:'signal', custom:' .oO0@#', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, scan:0, grain:1, fringe:1, paper:false, showMask:false, mood:'auto', volume:0.8, variation:0, alpha:false, lift:true, hue:0, rainbow:0, drift:0, back:'#020205', c1:'#3a1c8f', c2:'#ff5fd2', c3:'#fff3b0', curve:0, glitch:0, rain:0, mirror:'off', speed:1, introStyle:'grow', caption:'' };
 const PALETTES = {
   night:    { ramp:['#3b37d6','#7f8cff','#e8ebff'], accent:'#63e6b4', label:'GECE-MAVISI' },
   phosphor: { ramp:['#0c7a3e','#39e27d','#e2ffe9'], accent:'#b8ffd0', label:'PHOSPHOR' },
   amber:    { ramp:['#a34a00','#ffa62b','#fff1d0'], accent:'#ffd27a', label:'AMBER' },
   rose:     { ramp:['#8a1c5a','#ff5fa2','#ffe3ef'], accent:'#7fd4ff', label:'ROSE' },
   mono:     { ramp:['#666c80','#c9cede','#ffffff'], accent:'#ffffff', label:'SILVER' },
+  cyber:    { ramp:['#5a1bd6','#ff3df0','#b8f7ff'], accent:'#36f0ff', label:'CYBER' },
+  vapor:    { ramp:['#2a6cff','#ff71ce','#fffb96'], accent:'#05ffa1', label:'VAPOR' },
+  sunset:   { ramp:['#7a1f5c','#ff6a3d','#ffe9a8'], accent:'#ffd166', label:'SUNSET' },
+  ice:      { ramp:['#1f5fae','#7fe3ff','#ffffff'], accent:'#c9f4ff', label:'ICE' },
+  gold:     { ramp:['#7a5a12','#f2c14e','#fff7dc'], accent:'#ffe9a3', label:'GOLD' },
+  forest:   { ramp:['#14532d','#5fd38d','#f3ffd9'], accent:'#d6ff8a', label:'FOREST' },
+  thermal:  { ramp:['#2b0a6b','#ff3b30','#fff34d'], accent:'#ff9f1c', label:'THERMAL' },
+  blood:    { ramp:['#5a0a0a','#ff2d2d','#ffd9d9'], accent:'#ff8a8a', label:'BLOOD' },
 };
 for (const k in PALETTES) { PALETTES[k].rampRGB = PALETTES[k].ramp.map(hex); PALETTES[k].accentRGB = hex(PALETTES[k].accent); }
 
@@ -385,28 +460,34 @@ void main(){
 }`;
 const FS_COMP = `#version 300 es
 precision highp float; in vec2 vUv; out vec4 o;
-uniform sampler2D uBase,uB1,uB2,uB3,uB4; uniform float uGlow,uTime,uScan,uGrain,uFringe,uPaper,uRows,uAlpha;
+uniform sampler2D uBase,uB1,uB2,uB3,uB4; uniform float uGlow,uTime,uScan,uGrain,uFringe,uPaper,uRows,uAlpha,uCurve,uGlitch; uniform vec3 uBack;
 float h(vec2 p){ return fract(sin(dot(p,vec2(12.9898,78.233)))*43758.5453); }
 void main(){
-  vec2 d=vUv-.5; float r2=dot(d,d);
-  vec2 off=d*(.0005+.0018*r2)*uFringe;
-  vec3 base=vec3(texture(uBase,vUv+off).r,texture(uBase,vUv).g,texture(uBase,vUv-off).b);
-  vec3 b1=vec3(texture(uB1,vUv+off*2.).r,texture(uB1,vUv).g,texture(uB1,vUv-off*2.).b);
-  vec3 bl=b1*.34+texture(uB2,vUv).rgb*.3+texture(uB3,vUv).rgb*.24+texture(uB4,vUv).rgb*.18;
-  vec3 col=base+bl*uGlow;
+  vec2 d=vUv-.5; float r2=dot(d,d), fr=uFringe, k=uCurve*.42;
+  vec2 uv=.5+d*(1.+k*r2)/(1.+k*.25);
+  if(uGlitch>0.){
+    float band=floor(uv.y*26.), tt=floor(uTime*9.);
+    if(h(vec2(band,tt))<uGlitch*.2){ uv.x+=(h(vec2(tt,band+3.))-.5)*.14*uGlitch; fr+=5.*uGlitch; }
+  }
+  float inside=step(0.,uv.x)*step(uv.x,1.)*step(0.,uv.y)*step(uv.y,1.);
+  vec2 off=d*(.0005+.0018*r2)*fr+vec2(.0012,0.)*(fr-uFringe);
+  vec3 base=vec3(texture(uBase,uv+off).r,texture(uBase,uv).g,texture(uBase,uv-off).b);
+  vec3 b1=vec3(texture(uB1,uv+off*2.).r,texture(uB1,uv).g,texture(uB1,uv-off*2.).b);
+  vec3 bl=b1*.34+texture(uB2,uv).rgb*.3+texture(uB3,uv).rgb*.24+texture(uB4,uv).rgb*.18;
+  vec3 col=(base+bl*uGlow)*inside;
   col=1.-exp(-col*1.25);
-  col*=(1.+uScan*.3)*(1.-uScan*.45*(.5+.5*cos(vUv.y*uRows*2.0944)));
+  col*=(1.+uScan*.3)*(1.-uScan*.45*(.5+.5*cos(uv.y*uRows*2.0944)));
   float n=h(vUv*vec2(1387.,1931.)+fract(uTime)*7.)-.5;
   float al=1.;
   if(uPaper>.5){
     float mx=max(col.r,max(col.g,col.b)), a=clamp(mx*1.25,0.,1.);
     vec3 ink=col/max(mx,.001)*.2;
     if(uAlpha>.5){ col=ink*a; al=a; }
-    else { vec3 paper=vec3(.93,.9,.84)*(1.-r2*.22); col=mix(paper,ink,a)+n*.03*uGrain; }
+    else { vec3 paper=vec3(.93,.9,.84)*(1.-r2*.22)*inside; col=mix(paper,ink,a)+n*.03*uGrain; }
   } else if(uAlpha>.5){
     al=clamp(max(col.r,max(col.g,col.b))*1.6,0.,1.); col=min(col,vec3(al));
   } else {
-    col+=vec3(.006,.008,.02)*(1.-r2*1.6);
+    col+=uBack*(1.-r2*1.6)*inside;
     col*=1.-r2*.55;
     col+=n*.012*uGrain;
   }
@@ -1066,6 +1147,13 @@ function drawSource(t, grow, zoom, still) {
   actx.scale(fit, fit); actx.translate(-(cr.x + cr.w / 2), -(cr.y + cr.h / 2));
   actx.imageSmoothingQuality = 'high';
   src.draw(actx, t, grow);
+  if (P.mirror !== 'off') {
+    const hw = aw >> 1, hh = ah >> 1, cv = actx.canvas;
+    actx.setTransform(1, 0, 0, 1, 0, 0); actx.clearRect(hw, 0, aw - hw, ah);
+    actx.setTransform(-1, 0, 0, 1, hw * 2, 0); actx.drawImage(cv, 0, 0, hw, ah, 0, 0, hw, ah);
+    if (P.mirror === 'four') { actx.setTransform(1, 0, 0, 1, 0, 0); actx.clearRect(0, hh, aw, ah - hh); actx.setTransform(1, 0, 0, -1, 0, hh * 2); actx.drawImage(cv, 0, 0, aw, hh, 0, 0, aw, hh); }
+    actx.setTransform(1, 0, 0, 1, 0, 0);
+  }
 }
 
 /* ------------------------------------------------------------------ per-pixel mask + luminance, then per-cell statistics */
@@ -1138,6 +1226,14 @@ function computeReveal() {
   qh = 0; flood(false);
   for (let c = 0; c < nc; c++) { if (Cm[c] >= 0.3 && Dist[c] > maxD) maxD = Dist[c]; }
   for (let c = 0; c < nc; c++) Dist[c] = Dist[c] < 0 ? 1 : Dist[c] / maxD;
+  const sty = P.introStyle;
+  if (sty !== 'grow') {
+    const hgt = Math.max(1, base - top), cym = (top + base) / 2;
+    for (let cy = 0; cy < rows; cy++) for (let cx = 0; cx < cols; cx++) {
+      const v = sty === 'scan' ? (cy - top) / hgt : sty === 'type' ? ((cy - top) * cols + cx) / ((hgt + 1) * cols) : sty === 'centre' ? Math.hypot((cx - cols / 2) / cols * 2, (cy - cym) / hgt * 2) / 1.42 : hash(cx, cy, 5);
+      Dist[cy * cols + cx] = clamp(v, 0, 1);
+    }
+  }
 }
 
 /* ------------------------------------------------------------------ choose a glyph, colour and brightness for every cell */
@@ -1160,6 +1256,7 @@ function compose(t) {
   if (!st.levelsInit) { st.lo = lo; st.hi = hi; st.levelsInit = cnt > 20; } else { st.lo = lerp(st.lo, lo, 0.06); st.hi = lerp(st.hi, hi, 0.06); }
   lo = st.lo; hi = Math.max(st.hi, lo + 0.1);
   const tickA = Math.floor(t * 7), tickD = Math.floor(t * 11);
+  const rb = P.rainbow, hueBase = (P.hue + t * P.drift * 40) * RAD, hueOn = rb > 0 || P.hue !== 0 || P.drift !== 0, hC = Math.cos(hueBase), hS = Math.sin(hueBase);
   const pulse = st.pulse && t - st.pulse.t0 < 2.2 ? st.pulse : null, pr = pulse ? (t - pulse.t0) * 62 : 0;
   let sm = 0, sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0, top = rows, topX = 0, topN = 0, base = -1, baseX = 0, baseN = 0, minX = cols, maxX = 0, maxL = 0, coh = 0, enSum = 0, lSum = 0;
   const picks = st.picks; picks.length = 0; let seen = 0;
@@ -1189,6 +1286,12 @@ function compose(t) {
           coh += ch; enSum += en; lSum += L;
           if (P.showMask) { glyph = G.BLOCK; I = 0.7; }
         }
+        let hot = 0;
+        if (P.rain > 0 && !digit) {
+          const head = (t * (7 + 11 * hash(cx, 3, 91)) + hash(cx, 5, 17) * rows * 1.7) % (rows * 1.7), dd = head - cy, tr = dd >= 0 && dd < 16 ? 1 - dd / 16 : 0;
+          I *= lerp(1, 0.2 + 1.5 * tr, P.rain);
+          if (dd >= 0 && dd < 1.3) { hot = P.rain; glyph = G.D0 + ((hash(cx, cy, tickD) * 10) | 0); I = Math.max(I, 0.95 * P.rain); }
+        }
         I *= vis;
         let r = Cr[c], g = Cg[c], bb = Cb[c];
         if (pal) { const u = L * 2, A = pal.rampRGB[u < 1 ? 0 : 1], B2 = pal.rampRGB[u < 1 ? 1 : 2], f = u < 1 ? u : u - 1; r = lerp(A[0], B2[0], f); g = lerp(A[1], B2[1], f); bb = lerp(A[2], B2[2], f); if (stroke && L < 0.6) { r = lerp(r, pal.accentRGB[0], 0.7); g = lerp(g, pal.accentRGB[1], 0.7); bb = lerp(bb, pal.accentRGB[2], 0.7); } }
@@ -1197,6 +1300,14 @@ function compose(t) {
           const gray = 0.299 * r + 0.587 * g + 0.114 * bb; r = clamp(gray + (r - gray) * P.sat, 0, 255); g = clamp(gray + (g - gray) * P.sat, 0, 255); bb = clamp(gray + (bb - gray) * P.sat, 0, 255);
           const wv = clamp((L - 0.78) / 0.22, 0, 1) * 0.55; r = lerp(r, 255, wv); g = lerp(g, 255, wv); bb = lerp(bb, 255, wv);
         }
+        if (hueOn) {
+          let cs = hC, sn = hS; if (rb) { const ang = hueBase + rb * (cx / cols + cy / rows) * 3.1416; cs = Math.cos(ang); sn = Math.sin(ang); }
+          const r0 = r, g0 = g, b0 = bb;
+          r = clamp(r0 * (0.299 + 0.701 * cs + 0.168 * sn) + g0 * (0.587 - 0.587 * cs + 0.330 * sn) + b0 * (0.114 - 0.114 * cs - 0.497 * sn), 0, 255);
+          g = clamp(r0 * (0.299 - 0.299 * cs - 0.328 * sn) + g0 * (0.587 + 0.413 * cs + 0.035 * sn) + b0 * (0.114 - 0.114 * cs + 0.292 * sn), 0, 255);
+          bb = clamp(r0 * (0.299 - 0.300 * cs + 1.250 * sn) + g0 * (0.587 - 0.588 * cs - 1.050 * sn) + b0 * (0.114 + 0.886 * cs - 0.203 * sn), 0, 255);
+        }
+        if (hot) { r = lerp(r, 255, 0.8 * hot); g = lerp(g, 255, 0.8 * hot); bb = lerp(bb, 255, 0.8 * hot); }
         cellA[o] = r; cellA[o + 1] = g; cellA[o + 2] = bb; cellA[o + 3] = clamp(I, 0, 1) * 255; cellB[o] = glyph;
         sm++; sx += cx; sy += cy; sxx += cx * cx; syy += cy * cy; sxy += cx * cy;
         if (cy < top) { top = cy; topX = 0; topN = 0; } if (cy === top) { topX += cx; topN++; }
@@ -1235,7 +1346,7 @@ function cellColor(c, a) { const o = c * 4; return 'rgba(' + cellA[o] + ',' + ce
 function updateOverlays(t, dt) {
   const S = st.stats, has = S && S.n > 0;
   // growth ruler
-  if (P.intro && t < st.R && has) {
+  if (P.intro && t < st.R && has && (P.introStyle === 'grow' || src.selfGrow)) {
     const span = Math.max(1, st.finalBase - st.finalTop), v = clamp((S.base - S.top) / span, 0, 1);
     while (v >= st.nextTick && st.nextTick < 0.985 && !(src.rulerUntil && t > src.rulerUntil)) {
       music.tick(((st.nextTick / 0.065) | 0) % 10);
@@ -1322,7 +1433,8 @@ function drawHud(t) {
     g.fillStyle = 'rgba(' + ink + ',' + (0.82 * ta) + ')';
     drawText(g, src.name + ' · ' + src.seed, 26, H0 - 54, u);
     const pal = PALETTES[P.palette];
-    const lab = pal ? pal.label : src.label || '#' + st.avg.map(v => Math.round(clamp(v, 0, 255)).toString(16).toUpperCase().padStart(2, '0')).join('');
+    const cap = P.caption.trim().toUpperCase();
+    const lab = cap ? cap : pal ? pal.label : src.label || '#' + st.avg.map(v => Math.round(clamp(v, 0, 255)).toString(16).toUpperCase().padStart(2, '0')).join('');
     drawText(g, lab, 26, H0 - 34, u);
   }
 }
@@ -1507,7 +1619,7 @@ function render() {
   }
   pass(progComp, null, true);
   bind(0, fbBase.t, progComp.u.uBase); bind(1, levels[0].a.t, progComp.u.uB1); bind(2, levels[1].a.t, progComp.u.uB2); bind(3, levels[2].a.t, progComp.u.uB3); bind(4, levels[3].a.t, progComp.u.uB4);
-  gl.uniform1f(progComp.u.uGlow, P.glow); gl.uniform1f(progComp.u.uTime, st.time); gl.uniform1f(progComp.u.uScan, P.scan); gl.uniform1f(progComp.u.uGrain, P.grain); gl.uniform1f(progComp.u.uFringe, P.fringe); gl.uniform1f(progComp.u.uPaper, P.paper ? 1 : 0); gl.uniform1f(progComp.u.uRows, H0 / 3); gl.uniform1f(progComp.u.uAlpha, P.alpha ? 1 : 0); gl.drawArrays(gl.TRIANGLES, 0, 6);
+  gl.uniform1f(progComp.u.uGlow, P.glow); gl.uniform1f(progComp.u.uTime, st.time); gl.uniform1f(progComp.u.uScan, P.scan); gl.uniform1f(progComp.u.uGrain, P.grain); gl.uniform1f(progComp.u.uFringe, P.fringe); gl.uniform1f(progComp.u.uPaper, P.paper ? 1 : 0); gl.uniform1f(progComp.u.uRows, H0 / 3); gl.uniform1f(progComp.u.uAlpha, P.alpha ? 1 : 0); gl.uniform1f(progComp.u.uCurve, P.curve); gl.uniform1f(progComp.u.uGlitch, P.glitch); { const bk = hex(P.back); gl.uniform3f(progComp.u.uBack, bk[0] / 255 * 0.9, bk[1] / 255 * 0.9, bk[2] / 255 * 0.9); } gl.drawArrays(gl.TRIANGLES, 0, 6);
 }
 function restart() {
   st.time = 0; st.R = P.intro ? (src.introLen || 8) : 0; st.ticks = []; st.nextTick = 0.05; st.tracker = null; st.parts = []; st.pulse = null;
@@ -1544,7 +1656,7 @@ function loop(now) {
   requestAnimationFrame(loop);
   const dt = Math.min(0.1, (now - last) / 1000 || 0.016); last = now;
   if (paused) return;
-  advance(dt); render(); recTick();
+  advance(dt * P.speed); render(); recTick();
 }
 
 /* ------------------------------------------------------------------ saving */
@@ -1761,30 +1873,110 @@ function setCharset() {
   }
   $('customRow').hidden = $('customHint').hidden = k !== 'custom';
 }
-const LOOK_BASE = { charset:'signal', palette:'source', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, glow:1, scan:0, grain:1, fringe:1, paper:false };
+const LOOK_BASE = { charset:'signal', palette:'source', strokes:1, shimmer:1, outline:true, sat:1.5, contrast:1, glow:1, scan:0, grain:1, fringe:1, paper:false,
+  hue:0, rainbow:0, drift:0, back:'#020205', c1:'#3a1c8f', c2:'#ff5fd2', c3:'#fff3b0', curve:0, glitch:0, rain:0, mirror:'off' };
 const LOOKS = [
   ['signal', 'Signal', {}],
   ['terminal', 'Terminal', { charset:'ascii', palette:'phosphor', strokes:0.5, scan:0.7, glow:1.25, fringe:2 }],
+  ['matrix', 'Matrix', { charset:'digits', palette:'phosphor', strokes:0, shimmer:2, glow:1.4, outline:false, rain:1 }],
+  ['amber', 'Amber CRT', { charset:'dense', palette:'amber', strokes:0.4, scan:0.85, glow:1.3, fringe:2.5, grain:2, curve:0.7 }],
+  ['blueprint', 'Blueprint', { charset:'lines', palette:'night', strokes:1.5, glow:0.9, shimmer:0.5, back:'#04102a' }],
   ['halftone', 'Halftone', { charset:'dots', palette:'mono', strokes:0, shimmer:0, outline:false, glow:0.45, grain:0.5 }],
-  ['blueprint', 'Blueprint', { charset:'lines', palette:'night', strokes:1.5, glow:0.9, shimmer:0.5 }],
-  ['matrix', 'Matrix', { charset:'digits', palette:'phosphor', strokes:0, shimmer:3, glow:1.4, outline:false }],
   ['blocks', 'Blocks', { charset:'blocks', strokes:0, shimmer:0.3, outline:false, glow:0.7, sat:1.8 }],
-  ['amber', 'Amber CRT', { charset:'dense', palette:'amber', strokes:0.4, scan:0.85, glow:1.3, fringe:2.5, grain:2 }],
+  ['vapor', 'Vapor', { palette:'vapor', charset:'ascii', strokes:0.8, scan:0.4, curve:0.5, glow:1.2, back:'#12042a' }],
+  ['glitch', 'Glitch', { palette:'cyber', glitch:0.7, fringe:3, scan:0.5, shimmer:2, glow:1.2 }],
+  ['prism', 'Prism', { rainbow:1, drift:1, sat:2.2, glow:1.15 }],
+  ['thermal', 'Thermal', { palette:'thermal', charset:'dots', strokes:0, outline:false, shimmer:0.2, glow:1.1 }],
+  ['gold', 'Gold', { palette:'gold', charset:'dense', strokes:0.6, glow:1.3, back:'#0a0703' }],
+  ['kaleido', 'Kaleido', { mirror:'four', palette:'cyber', drift:0.6, glow:1.2 }],
   ['newsprint', 'Newsprint', { charset:'dots', strokes:0.3, shimmer:0, glow:0, paper:true, grain:2, sat:1.2, contrast:1.2, outline:false }],
   ['typewriter', 'Typewriter', { charset:'dense', palette:'mono', strokes:0, shimmer:0, glow:0, paper:true, grain:1.5, contrast:1.3, outline:false }],
 ];
 function syncUI() {
   for (const el of document.querySelectorAll('[data-k]')) { const v = P[el.dataset.k]; if (el.type === 'checkbox') el.checked = !!v; else el.value = String(v); }
+  showVals(); setCustomPalette();
 }
 function applyLook(key) {
   const look = LOOKS.find(l => l[0] === key); Object.assign(P, LOOK_BASE, look[2]); P.look = key;
-  syncUI(); setCharset(); st.levelsInit = false;
-  for (const b of $('looks').children) b.setAttribute('aria-pressed', String(b.dataset.key === key));
+  afterLook();
 }
 function noteBackground(info) {
   const auto = P.bg === 'auto', key = info.bg.key, light = key[0] + key[1] + key[2] > 380, m = info.bg.mode;
   $('bgnote').textContent = m === 'alpha' ? 'Using the file’s own transparency.' : m === 'none' ? (auto ? 'Busy background found, so the whole picture is kept.' : 'Whole picture kept.') : (auto ? 'Plain ' : '') + (light ? 'light' : 'dark') + ' background removed.';
   $('tolRow').hidden = $('tolHint').hidden = m !== 'key';
+}
+
+/* ------------------------------------------------------------------ interface: tabs, value readouts, surprise, own looks */
+const SAMPLE = { signal:'/=0o:', ascii:'.:-=+*#', dense:'$@B%8&W', dots:'·•●•·', blocks:'░▒▓█', lines:'/|\\—', digits:'0123', binary:'0110', custom:'abc' };
+const store = {
+  get(k, d) { try { const v = localStorage.getItem(k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* private window: the page works without it */ } },
+};
+let myLooks = store.get('gb.looks', []); if (!Array.isArray(myLooks)) myLooks = [];
+function setCustomPalette() {
+  PALETTES.custom = { ramp:[P.c1, P.c2, P.c3], rampRGB:[hex(P.c1), hex(P.c2), hex(P.c3)], accent:P.c3, accentRGB:hex(P.c3), label:'CUSTOM' };
+  $('customCols').hidden = P.palette !== 'custom';
+}
+function showVals() {
+  for (const el of document.querySelectorAll('input[type=range][data-k]')) { const o = el.nextElementSibling; if (o) o.textContent = (+el.value).toFixed(+el.step >= 1 ? 0 : +el.step >= 0.1 ? 1 : 2); }
+}
+function buildLooks() {
+  const box = $('looks'); box.textContent = '';
+  const add = (key, label, p, fn) => {
+    const full = Object.assign({}, LOOK_BASE, p), pal = PALETTES[full.palette], b = document.createElement('button'), s = document.createElement('span'), n = document.createElement('span');
+    s.className = 'smp'; s.textContent = SAMPLE[full.charset] || SAMPLE.signal; s.style.color = full.paper ? '#cfc8b8' : pal ? pal.ramp[1] : full.rainbow ? '#ff8ad8' : '#9aa4ff';
+    n.textContent = label; b.append(s, n); b.dataset.key = key; b.setAttribute('aria-pressed', String(P.look === key)); b.onclick = fn; box.appendChild(b);
+  };
+  for (const [key, label, p] of LOOKS) add(key, label, p, () => applyLook(key));
+  myLooks.forEach((m, i) => add('my' + i, m.name, m.p, () => { Object.assign(P, LOOK_BASE, m.p); P.look = 'my' + i; afterLook(); }));
+  $('clearLooks').hidden = !myLooks.length;
+}
+function afterLook() {
+  syncUI(); setCharset(); st.levelsInit = false; st.revealDirty = true;
+  for (const b of $('looks').children) b.setAttribute('aria-pressed', String(b.dataset.key === P.look));
+}
+function surprise() {
+  const r = Math.random, pick = a => a[(r() * a.length) | 0], dark = LOOKS.filter(l => !l[2].paper);
+  Object.assign(P, LOOK_BASE, pick(r() < 0.12 ? LOOKS : dark)[2]); P.look = '';
+  if (!P.paper) {
+    if (r() < 0.6) P.palette = pick(Object.keys(PALETTES).filter(k => k !== 'custom').concat(['source', 'source', 'source', 'source']));
+    if (r() < 0.45) P.charset = pick(['signal', 'signal', 'ascii', 'dense', 'dots', 'blocks', 'lines', 'digits']);
+    if (r() < 0.35) P.hue = Math.round(r() * 72) * 5;
+    if (r() < 0.2) P.rainbow = +(0.3 + r()).toFixed(2);
+    if (r() < 0.2) P.drift = +(0.4 + r() * 1.4).toFixed(1);
+    if (r() < 0.25) P.scan = +(0.3 + r() * 0.5).toFixed(2);
+    if (r() < 0.14) P.glitch = +(0.3 + r() * 0.5).toFixed(2);
+    if (r() < 0.14) P.rain = +(0.5 + r() * 0.5).toFixed(2);
+    if (r() < 0.12) P.curve = 0.6;
+    P.glow = +(0.7 + r() * 0.8).toFixed(2);
+  }
+  afterLook(); say('Rolled a new look. Press R for another.');
+}
+function togglePause() { paused = !paused; last = performance.now(); $('pause').textContent = paused ? 'Play' : 'Pause'; }
+function wireUI() {
+  const tabs = [...document.querySelectorAll('.tabs button')];
+  const show = name => { for (const b of tabs) b.setAttribute('aria-selected', String(b.dataset.tab === name)); for (const s of document.querySelectorAll('.tab')) s.hidden = s.dataset.tab !== name; store.set('gb.tab', name); };
+  for (const b of tabs) b.onclick = () => show(b.dataset.tab);
+  const t0 = store.get('gb.tab', 'source'); show(tabs.some(b => b.dataset.tab === t0) ? t0 : 'source');
+  for (const el of document.querySelectorAll('input[type=range][data-k]')) {
+    const o = document.createElement('span'); o.className = 'val'; el.after(o); el.title = 'Double-click to reset';
+    el.addEventListener('input', showVals);
+    el.addEventListener('dblclick', () => { el.value = P0[el.dataset.k]; el.dispatchEvent(new Event('input')); });
+  }
+  showVals();
+  $('surprise').onclick = surprise;
+  $('resetLook').onclick = () => applyLook('signal');
+  $('pause').onclick = togglePause;
+  $('saveLook').onclick = () => {
+    const p = {}; for (const k in LOOK_BASE) p[k] = P[k];
+    myLooks.push({ name: 'Mine ' + (myLooks.length + 1), p }); store.set('gb.looks', myLooks); P.look = 'my' + (myLooks.length - 1); buildLooks();
+    say('Saved as Mine ' + myLooks.length + '. It stays in this browser.');
+  };
+  $('clearLooks').onclick = () => { myLooks = []; store.set('gb.looks', myLooks); buildLooks(); };
+  addEventListener('keydown', e => {
+    if ((e.target && /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) || e.metaKey || e.ctrlKey || e.altKey) return;
+    if (e.code === 'Space') { e.preventDefault(); togglePause(); } else if (e.key === 'r' || e.key === 'R') surprise();
+  });
 }
 
 /* ------------------------------------------------------------------ controls */
@@ -1803,6 +1995,9 @@ function onParam(k) {
   else if (k === 'volume') music.volume();
   else if (k === 'mood') music.restart();
   else if (k === 'alpha') canvas.classList.toggle('alpha', P.alpha);
+  else if (k === 'introStyle') restart();
+  else if (k === 'mirror') { st.revealDirty = true; st.levelsInit = false; }
+  else if (k === 'palette' || k === 'c1' || k === 'c2' || k === 'c3') setCustomPalette();
   if (LOOK_BASE.hasOwnProperty(k)) for (const b of $('looks').children) b.setAttribute('aria-pressed', 'false');
 }
 function wire() {
@@ -1813,14 +2008,11 @@ function wire() {
     const b = document.createElement('button'); b.textContent = label; b.dataset.key = key; b.setAttribute('aria-pressed', 'false');
     b.onclick = () => { setSource(make()); say(''); }; $('tpl').appendChild(b);
   }
-  for (const [key, label] of LOOKS) {
-    const b = document.createElement('button'); b.textContent = label; b.dataset.key = key; b.setAttribute('aria-pressed', String(key === 'signal'));
-    b.onclick = () => applyLook(key); $('looks').appendChild(b);
-  }
+  buildLooks();
   for (const el of document.querySelectorAll('[data-k]')) {
     const k = el.dataset.k, num = el.type === 'range' || k === 'res';
     const read = () => { P[k] = el.type === 'checkbox' ? el.checked : num ? +el.value : el.value; onParam(k); };
-    el.addEventListener(el.type === 'range' || el.type === 'text' ? 'input' : 'change', read);
+    el.addEventListener(el.type === 'range' || el.type === 'text' || el.type === 'color' ? 'input' : 'change', read);
   }
   const makeWord = async () => { const v = $('word').value.trim(); if (!v) return; try { await document.fonts.load('800 40px Inter'); } catch (e) {} setSource(textSource(v)); say(''); };
   $('mkword').onclick = makeWord; $('word').addEventListener('keydown', e => { if (e.key === 'Enter') makeWord(); });
@@ -1874,9 +2066,9 @@ function wire() {
 
 if (!gl) { say('This browser has no WebGL 2, so the stage cannot draw.', true); }
 else {
-  initGL(); setStage(); wire(); setSource(irisSource()); loadShared();
+  initGL(); setStage(); setCustomPalette(); wire(); wireUI(); setSource(irisSource()); loadShared();
   const m = /[#&]t=([\d.]+)/.exec(location.hash);
-  window.GB = { P, st, orbit, music, async ai() { const notes = []; const bmp = await aiDepth(m => notes.push(m)); base.depth = bmp; P.three = true; applySource(false); const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; c.getContext('2d').drawImage(bmp, 0, 0); return c.toDataURL('image/png'); }, link: shareLink, text(t) { setSource(textSource(t)); }, depth(bmp) { base.depth = bmp; P.three = true; applySource(false); }, async gif(sec) { const u = new Uint8Array(await (await makeGif(sec, () => {})).arrayBuffer()); let x = ''; for (let i = 0; i < u.length; i += 32768) x += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(x); }, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); }, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
+  window.GB = { P, st, orbit, music, async ai() { const notes = []; const bmp = await aiDepth(m => notes.push(m)); base.depth = bmp; P.three = true; applySource(false); const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; c.getContext('2d').drawImage(bmp, 0, 0); return c.toDataURL('image/png'); }, link: shareLink, text(t) { setSource(textSource(t)); }, depth(bmp) { base.depth = bmp; P.three = true; applySource(false); }, async gif(sec) { const u = new Uint8Array(await (await makeGif(sec, () => {})).arrayBuffer()); let x = ''; for (let i = 0; i < u.length; i += 32768) x += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(x); }, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); st.revealDirty = true; }, surprise, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
   if (m) window.GB.seek(+m[1]);
   requestAnimationFrame(loop);
 }

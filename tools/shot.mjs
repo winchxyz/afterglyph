@@ -25,6 +25,8 @@ const set = {};
 for (const k of ['density', 'glow', 'palette', 'bg', 'tol', 'format', 'res', 'charset', 'custom', 'strokes', 'shimmer', 'sat', 'contrast', 'scan', 'grain', 'fringe', 'mood', 'variation']) if (k in opt) set[k] = isNaN(+opt[k]) ? opt[k] : +opt[k];
 for (const k of ['invert', 'intro', 'camera', 'hud', 'three', 'spin', 'paper', 'outline', 'showMask', 'alpha', 'lift']) if (k in opt) set[k] = opt[k] === '1';
 if (!('res' in set)) set.res = 1;
+// any other setting: p.key=value (numbers and true/false are converted)
+for (const a of rest) if (a.startsWith('p.')) { const i = a.indexOf('='), v = a.slice(i + 1); set[a.slice(2, i)] = v === 'true' ? true : v === 'false' ? false : v !== '' && !isNaN(+v) ? +v : v; }
 await page.evaluate(s => { Object.assign(window.GB.P, s); window.GB.stage(); }, set);
 if (opt.tpl) await page.evaluate(k => window.GB.template(k), opt.tpl);
 if (opt.file) {
@@ -83,5 +85,6 @@ if (opt.wav) {
   writeFileSync(join(outDir, `${tag}.wav`), Buffer.from(b64.slice(cut + 1), 'base64'));
   console.log('score:', b64.slice(0, cut));
 }
+if (opt.tab) await page.click(`.tabs button[data-tab="${opt.tab}"]`);
 if (opt.ui) await page.screenshot({ path: join(outDir, `${tag}_ui.png`) });
 await browser.close();
