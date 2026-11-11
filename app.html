@@ -1,4 +1,4 @@
-<title>Glyph Bloom</title>
+<title>Afterglyph</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Geist+Mono:wght@400;500&display=swap">
 <style>
@@ -124,7 +124,7 @@ input[type=checkbox]:disabled{opacity:.4;cursor:default}
 
   <aside class="panel">
     <header>
-      <h1>Glyph Bloom</h1>
+      <h1>Afterglyph</h1>
       <p class="lede">Any picture, GIF, video or word as glowing glyph art.</p>
     </header>
     <nav class="tabs" role="tablist" aria-label="Settings">
@@ -1773,7 +1773,7 @@ async function saveFile(filename, blob) {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 20000); return true;
 }
-const fileStem = () => 'glyph-bloom-' + src.name.toLowerCase();
+const fileStem = () => 'afterglyph-' + src.name.toLowerCase();
 let rec = null;
 function recTick() {
   if (!rec) return;
@@ -1863,7 +1863,7 @@ async function aiDepth(note) {
 }
 
 /* ------------------------------------------------------------------ share link */
-const P0 = Object.assign({}, P), HOME = 'https://winchxyz.github.io/glyph-bloom/';
+const P0 = Object.assign({}, P), HOME = 'https://winchxyz.github.io/afterglyph/';
 function shareLink() {
   const o = {}; for (const k in P) if (P[k] !== P0[k] && k !== 'volume' && k !== 'showMask' && k !== 'look') o[k] = P[k];
   if (base.text) o._x = base.text; else if (base.kind === 'mesh' && base.key) o._t = base.key;

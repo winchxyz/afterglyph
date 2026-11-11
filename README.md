@@ -1,4 +1,4 @@
-<h1 align="center">Glyph Bloom</h1>
+<h1 align="center">Afterglyph</h1>
 
 <p align="center">
   Turn any image, GIF or short video into glowing glyph art, then spin it as a 3D object.<br>
@@ -6,11 +6,11 @@
 </p>
 
 <p align="center">
-  <a href="https://winchxyz.github.io/glyph-bloom/"><b>Open the live app →</b></a>
+  <a href="https://winchxyz.github.io/afterglyph/"><b>Open the live app →</b></a>
 </p>
 
 <p align="center">
-  <a href="https://winchxyz.github.io/glyph-bloom/"><img src="docs/turn.gif" width="420" alt="A jellyfish made of glowing glyphs turning in 3D"></a>
+  <a href="https://winchxyz.github.io/afterglyph/"><img src="docs/turn.gif" width="420" alt="A jellyfish made of glowing glyphs turning in 3D"></a>
 </p>
 
 ## What it does
@@ -64,7 +64,7 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 
 ## Use it
 
-1. Open **https://winchxyz.github.io/glyph-bloom/**
+1. Open **https://winchxyz.github.io/afterglyph/**
 2. Drop a file on the stage, or pick a template.
 3. Tune density, glow and colour. Tick *3D object* to turn it.
 4. *Save PNG*, *Save GIF* or *Save video*.
