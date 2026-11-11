@@ -1,4 +1,4 @@
-<h1 align="center">Afterglyph</h1>
+<h1 align="center"><img src="docs/logo.svg" width="330" alt="Afterglyph"></h1>
 
 <p align="center">
   Turn any image, GIF or short video into glowing glyph art, then spin it as a 3D object.<br>

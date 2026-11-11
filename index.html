@@ -1,4 +1,4 @@
-<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Afterglyph</title><meta name="description" content="Turn any image, GIF or short video into glowing glyph art you can spin in 3D. Runs entirely in the browser."><meta property="og:title" content="Afterglyph"><meta property="og:description" content="Turn any image, GIF or short video into glowing glyph art you can spin in 3D. Runs entirely in the browser."><meta property="og:image" content="https://winchxyz.github.io/afterglyph/docs/templates.png"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#05060c"><style>html{color-scheme:dark}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Afterglyph</title>
+<!doctype html><html lang="en"><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><title>Afterglyph</title><link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Crect%20width%3D%2264%22%20height%3D%2264%22%20rx%3D%2214%22%20fill%3D%22%2306070c%22%2F%3E%3Cg%20fill%3D%22none%22%20stroke-linecap%3D%22round%22%20stroke-width%3D%225%22%3E%3Cg%20stroke%3D%22%238f9bff%22%20opacity%3D%22.22%22%3E%3Cpath%20d%3D%22M31%2049%20L40%2015%20M48%2015%20L57%2049%20M39%2037%20H49%22%2F%3E%3C%2Fg%3E%3Cg%20stroke%3D%22%238f9bff%22%20opacity%3D%22.5%22%3E%3Cpath%20d%3D%22M22%2049%20L31%2015%20M39%2015%20L48%2049%20M30%2037%20H40%22%2F%3E%3C%2Fg%3E%3Cg%20stroke%3D%22%23eef0fb%22%3E%3Cpath%20d%3D%22M13%2049%20L22%2015%20M30%2015%20L39%2049%20M21%2037%20H31%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E"><meta name="description" content="Turn any image, GIF or short video into glowing glyph art you can spin in 3D. Runs entirely in the browser."><meta property="og:title" content="Afterglyph"><meta property="og:description" content="Turn any image, GIF or short video into glowing glyph art you can spin in 3D. Runs entirely in the browser."><meta property="og:image" content="https://winchxyz.github.io/afterglyph/docs/templates.png"><meta name="twitter:card" content="summary_large_image"><meta name="theme-color" content="#05060c"><style>html{color-scheme:dark}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style></head><body><title>Afterglyph</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Geist+Mono:wght@400;500&display=swap">
 <style>
@@ -34,7 +34,8 @@ body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:1
 
 .panel{min-width:0;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding:18px 18px 0;background:var(--panel);
   border:1px solid var(--line);border-radius:16px;scrollbar-width:thin;scrollbar-color:var(--raise) transparent}
-.panel h1{font-size:17px;font-weight:600;margin:0;letter-spacing:-.005em}
+.panel h1{font-size:17px;font-weight:600;margin:0;letter-spacing:-.005em;display:flex;align-items:center;gap:8px}
+.mark{width:26px;height:26px;flex:0 0 auto;margin-left:-3px}
 .panel .lede{margin:3px 0 0;color:var(--muted)}
 .tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:3px;background:var(--field);border-radius:11px}
 .tabs button{border:0;border-radius:8px;background:none;padding:0;font-size:12px;color:var(--muted);min-height:30px}
@@ -124,7 +125,7 @@ input[type=checkbox]:disabled{opacity:.4;cursor:default}
 
   <aside class="panel">
     <header>
-      <h1>Afterglyph</h1>
+      <h1><svg class="mark" viewBox="0 0 64 64" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-width="5"><g stroke="#8f9bff" opacity=".22"><path d="M31 49 L40 15 M48 15 L57 49 M39 37 H49"/></g><g stroke="#8f9bff" opacity=".5"><path d="M22 49 L31 15 M39 15 L48 49 M30 37 H40"/></g><g stroke="#eef0fb"><path d="M13 49 L22 15 M30 15 L39 49 M21 37 H31"/></g></g></svg>Afterglyph</h1>
       <p class="lede">Any picture, GIF, video or word as glowing glyph art.</p>
     </header>
     <nav class="tabs" role="tablist" aria-label="Settings">
