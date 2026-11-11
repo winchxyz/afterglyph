@@ -69,9 +69,17 @@ if (opt.frames) {
   }
 }
 if (opt.gif) {
-  const t0 = Date.now(), b64 = await page.evaluate(sec => window.GB.gif(sec), +opt.gif);
+  // gif=4 [gsize=640] [gfps=20] [from=start]
+  const t0 = Date.now(), b64 = await page.evaluate(o => window.GB.gif(o), { secs: +opt.gif, size: +(opt.gsize || 640), fps: +(opt.gfps || 20), from: opt.from || 'now', fuzz: opt.fuzz === undefined ? undefined : +opt.fuzz, dither: opt.dither === undefined ? undefined : +opt.dither });
   writeFileSync(join(outDir, `${tag}.gif`), Buffer.from(b64, 'base64'));
   console.log('gif', (b64.length * 0.75 / 1048576).toFixed(2) + ' MB', (Date.now() - t0) + ' ms');
+}
+if (opt.video) {
+  // video=4 [vsize=720] [vfps=30] [from=now] [sound=0] [codec=vp9]: frame-by-frame MP4 (needs network once for the muxer script)
+  const t0 = Date.now(), out = await page.evaluate(o => window.GB.video(o), { secs: +opt.video, size: +(opt.vsize || 720), fps: +(opt.vfps || 30), from: opt.from || 'start', sound: opt.sound !== '0', codec: opt.codec });
+  const cut = out.indexOf('|');
+  if (cut < 0) console.log('video: no encoder in this browser');
+  else { writeFileSync(join(outDir, `${tag}.mp4`), Buffer.from(out.slice(cut + 1), 'base64')); console.log('video', out.slice(0, cut), ((out.length - cut) * 0.75 / 1048576).toFixed(2) + ' MB', (Date.now() - t0) + ' ms'); }
 }
 if (opt.link) console.log('link:', await page.evaluate(() => window.GB.link()));
 if (opt.wav) {

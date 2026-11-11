@@ -51,10 +51,10 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 - **Character sets.** Mixed symbols, classic ASCII, the full 70-character ramp, halftone dots, shade blocks, lines only, digits, binary, or your own characters (sorted from light to heavy automatically).
 - **Colour.** From the file, thirteen palettes or your own three colours, plus a backdrop colour, hue shift, rainbow spread and colour drift over time.
 - **Effects.** Glow, scanlines, grain, lens fringe, screen curve, glitch, digit rain, mirror and kaleidoscope, ink on paper. Five intro styles and a speed control.
-- **Tabbed panel.** Source, Look, Colour, Motion, Sound, Save. Every slider shows its value, explains itself in one line and resets on double-click. Space pauses.
+- **Tabbed panel.** Source, Look, Colour, Motion, Sound, Save. Colours are swatches, looks are sample cards, every slider shows its value and resets on double-click, and a help line at the bottom explains whatever you point at. Space pauses.
 - **Soundtrack.** A generative score composed from the art: the dominant colour picks the key, brightness the mode, detail the tempo, the file name the melody. Pads, bass, plucks, bells and optional drums run through a reverb and a ping-pong delay. The intro, ruler ticks, trackers and pulses each trigger a sound. Five moods, endless variations, WAV export.
-- **Export.** Save a PNG up to 2048 px wide, or record a 12 to 57 second video with the soundtrack (MP4 where the browser can, WebM otherwise).
-- **GIF and share link.** Save a 6 second looping GIF, or copy a link that carries every setting and the template or text.
+- **Video.** MP4 (H.264 + AAC) drawn and encoded frame by frame with WebCodecs, so nothing is dropped on a slow machine: 720 px, 1080 px or full size, 30 or 60 fps, 6 to 57 seconds, with the soundtrack mixed in offline. Also a PNG up to 2048 px wide.
+- **GIF and share link.** A looping GIF up to 800 px and 25 fps whose end dissolves back into its start, so there is no jump; unchanged pixels are skipped to keep the file small. Or copy a link that carries every setting and the template or text.
 - **Transparent background.** PNG, GIF and WebM video without the black, ready to lay over other footage.
 - **Private.** Files never leave the browser. There is nothing to upload to.
 
@@ -67,7 +67,7 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 1. Open **https://winchxyz.github.io/glyph-bloom/**
 2. Drop a file on the stage, or pick a template.
 3. Tune density, glow and colour. Tick *3D object* to turn it.
-4. *Save PNG* or *Record video*.
+4. *Save PNG*, *Save GIF* or *Save video*.
 
 It needs a browser with WebGL 2 (current Chrome, Edge, Firefox and Safari).
 
@@ -115,7 +115,7 @@ node tools/shot.mjs out tpl=knot t=13 frames=60 step=0.08
 
 - Busy pictures with small text turn to noise. Clear subjects on plain or dark backgrounds work best.
 - A relief is inflated from a flat picture, so its back is a mirror of its front.
-- Video is recorded in real time from the canvas. Keep the tab in front while it records.
+- Video needs WebCodecs (current Chrome, Edge, Safari, Firefox). Without it, and for transparent WebM, the app falls back to recording the canvas in real time. Keep the tab in front while a clip renders.
 - The soundtrack is synthesised with Web Audio, so it starts only after you press play.
 
 ## License

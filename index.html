@@ -2,96 +2,131 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: one stage, one quiet control column. The art is the only loud thing on the page. */
+/* Layout: the stage with its transport on the left, one calm inspector on the right. The art is the only loud thing on the page. */
 :root{
   color-scheme: dark;
-  --ink:#05060c; --panel:#0a0c16; --line:#1a1f33; --field:#10131f;
-  --text:#dfe3f5; --muted:#7f87a8; --accent:#8f9bff; --accent-ink:#090a18; --warn:#ff9d9d;
+  --ink:#06070c; --panel:#0c0e17; --line:#1b2032; --field:#141827; --raise:#222840;
+  --text:#e6e9f7; --soft:#aab1cc; --muted:#737b9a; --accent:#8f9bff; --accent-ink:#0a0b1a; --warn:#ff9d9d;
   --sans:-apple-system,"SF Pro Text","Inter",system-ui,sans-serif;
   --mono:"SF Mono","Geist Mono",ui-monospace,monospace;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.45;-webkit-font-smoothing:antialiased}
-.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:20px;padding-block:16px;
+.app{height:100%;display:grid;grid-template-columns:minmax(0,1fr) 348px;grid-template-rows:minmax(0,1fr);gap:18px;padding-block:16px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
-.stage{position:relative;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
-#stage{display:block;max-width:100%;max-height:100%;border-radius:3px;background:var(--ink)}
-.drop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:1px dashed var(--accent);
-  border-radius:6px;background:color-mix(in srgb,var(--ink) 82%,transparent);font-family:var(--mono);font-size:12px;
-  letter-spacing:.08em;text-transform:uppercase;color:var(--accent);pointer-events:none}
-.panel{min-width:0;display:flex;flex-direction:column;gap:12px;overflow-y:auto;padding-right:2px}
-.panel h1{font-size:15px;font-weight:600;margin:0;letter-spacing:.01em}
-.panel .lede{margin:4px 0 0;color:var(--muted)}
-.group{display:flex;flex-direction:column;gap:10px;padding-top:16px;border-top:1px solid var(--line)}
-.row{display:flex;gap:8px;flex-wrap:wrap}
-.row > *{flex:1 1 0;min-width:0}
-label.f{display:grid;grid-template-columns:92px minmax(0,1fr) auto;align-items:center;gap:10px;color:var(--muted)}
-label.t{display:flex;align-items:center;gap:8px;color:var(--text);cursor:pointer}
-button,select{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:6px;
-  padding:7px 10px;min-height:32px;cursor:pointer}
-select{width:100%;padding-right:6px}
-button:hover,select:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
-button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
-button.rec{border-color:var(--warn);color:var(--warn)}
-button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-input[type=range]{width:100%;accent-color:var(--accent);margin:0}
-input[type=checkbox]{accent-color:var(--accent);width:15px;height:15px;margin:0}
-.meta{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;overflow-wrap:anywhere;margin:0;min-height:16px}
-.meta.warn{color:var(--warn)}
-.tpl{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.tpl button{font-family:var(--mono);font-size:11px;letter-spacing:.03em;padding:6px 4px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.tpl button[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
-.tpl button.primary{color:var(--accent-ink)}
-details.group > summary{cursor:pointer;font-weight:600;letter-spacing:.01em;list-style:none;display:flex;justify-content:space-between;align-items:center}
-details.group > summary::-webkit-details-marker{display:none}
-details.group > summary::after{content:"+";font-family:var(--mono);color:var(--muted)}
-details.group[open] > summary::after{content:"\2212"}
-details.group > summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.hint{margin:-4px 0 2px;font-size:11.5px;line-height:1.4;color:var(--muted)}
-input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:6px;padding:6px 8px;width:100%;min-width:0}
+.view{min-width:0;min-height:0;display:flex;flex-direction:column;gap:8px}
+.stage{position:relative;flex:1 1 0;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center}
+#stage{display:block;max-width:100%;max-height:100%;border-radius:10px;background:var(--ink);box-shadow:0 0 0 1px var(--line)}
 #stage.alpha{background:repeating-conic-gradient(#1c1e2b 0 25%,#11121a 0 50%) 0 0/22px 22px}
-#mkword{flex:0 0 auto}
-.val{font-family:var(--mono);font-size:10.5px;color:var(--muted);min-width:30px;text-align:right}
-.bar{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));border-bottom:1px solid var(--line)}
-.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:8px 0;font-size:11.5px;color:var(--muted);min-height:34px}
-.tabs button:hover{color:var(--text)}
-.tabs button[aria-selected="true"]{color:var(--text);border-bottom-color:var(--accent)}
-.tab{display:flex;flex-direction:column;gap:10px;padding-bottom:12px}
-.tab > h2{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 0 0;padding-top:14px;border-top:1px solid var(--line)}
-.looks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
-.looks button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px 6px;font-size:10.5px;color:var(--muted);overflow:hidden}
-.looks button[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
-.smp{font-family:var(--mono);font-size:13px;letter-spacing:.06em;white-space:nowrap}
-input[type=color]{width:100%;height:30px;padding:2px;background:var(--field);border:1px solid var(--line);border-radius:6px;cursor:pointer}
 #stage.turn{cursor:grab;touch-action:none}
 #stage.turn:active{cursor:grabbing}
-@media (max-width:760px){
+.drop{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;border:1px dashed var(--accent);
+  border-radius:10px;background:color-mix(in srgb,var(--ink) 82%,transparent);font-family:var(--mono);font-size:12px;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--accent);pointer-events:none}
+.prog{height:2px;border-radius:2px;overflow:hidden}
+.prog.on{background:var(--line)}
+.prog i{display:block;height:100%;width:0;background:var(--accent)}
+.deck{display:flex;align-items:center;gap:12px;flex-wrap:wrap;min-height:34px}
+.deck .meta{flex:1 1 160px}
+.transport{display:flex;gap:6px}
+.transport button{background:none}
+
+.panel{min-width:0;display:flex;flex-direction:column;gap:14px;overflow-y:auto;padding:18px 18px 0;background:var(--panel);
+  border:1px solid var(--line);border-radius:16px;scrollbar-width:thin;scrollbar-color:var(--raise) transparent}
+.panel h1{font-size:17px;font-weight:600;margin:0;letter-spacing:-.005em}
+.panel .lede{margin:3px 0 0;color:var(--muted)}
+.tabs{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:3px;background:var(--field);border-radius:11px}
+.tabs button{border:0;border-radius:8px;background:none;padding:0;font-size:12px;color:var(--muted);min-height:30px}
+.tabs button:hover{color:var(--text)}
+.tabs button[aria-selected="true"]{color:var(--text);background:var(--raise)}
+.tab{display:flex;flex-direction:column;gap:12px;padding-bottom:18px}
+.tab > h2{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 0 0;padding-top:16px;border-top:1px solid var(--line)}
+.tab > h2:first-child{margin-top:0;padding-top:0;border-top:0}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row > *{flex:1 1 0;min-width:0}
+#mkword{flex:0 0 auto}
+
+label.f{display:grid;grid-template-columns:96px minmax(0,1fr);align-items:center;gap:6px 10px;color:var(--soft)}
+label.f:has(input[type=range]){grid-template-columns:minmax(0,1fr) auto}
+label.f input[type=range]{grid-column:1 / -1;grid-row:2}
+label.f .val{grid-column:2;grid-row:1}
+label.t{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;gap:12px;color:var(--soft);cursor:pointer}
+.val{font-family:var(--mono);font-size:11px;color:var(--muted);text-align:right}
+button,select{font:inherit;color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:9px;
+  padding:8px 11px;min-height:34px;cursor:pointer}
+select{width:100%;padding-right:6px}
+button:hover,select:hover{border-color:color-mix(in srgb,var(--accent) 55%,var(--line))}
+button:disabled{opacity:.4;cursor:default}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:600}
+button.rec{border-color:var(--warn);color:var(--warn);background:var(--field)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+input[type=text]{font:inherit;font-family:var(--mono);color:var(--text);background:var(--field);border:1px solid var(--line);border-radius:9px;padding:7px 9px;min-height:34px;width:100%;min-width:0}
+input[type=color]{width:100%;height:34px;padding:3px;background:var(--field);border:1px solid var(--line);border-radius:9px;cursor:pointer}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:18px;margin:0;background:none;cursor:pointer;--p:50%}
+input[type=range]::-webkit-slider-runnable-track{height:4px;border-radius:2px;background:linear-gradient(90deg,var(--accent) var(--p),var(--raise) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;margin-top:-5px;border-radius:50%;background:var(--text);border:0;box-shadow:0 0 0 3px var(--panel)}
+input[type=range]::-moz-range-track{height:4px;border-radius:2px;background:var(--raise)}
+input[type=range]::-moz-range-progress{height:4px;border-radius:2px;background:var(--accent)}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border:0;border-radius:50%;background:var(--text)}
+input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:0 0 auto;width:30px;height:18px;margin:0;border-radius:9px;background:var(--raise);position:relative;cursor:pointer;transition:background .15s}
+input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--soft);transition:transform .15s,background .15s}
+input[type=checkbox]:checked{background:var(--accent)}
+input[type=checkbox]:checked::after{transform:translateX(12px);background:var(--accent-ink)}
+input[type=checkbox]:disabled{opacity:.4;cursor:default}
+@media (prefers-reduced-motion:reduce){input[type=checkbox],input[type=checkbox]::after{transition:none}}
+
+.meta{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.04em;overflow-wrap:anywhere;margin:0;min-height:16px}
+.meta.warn{color:var(--warn)}
+.tab .meta:empty{display:none}
+.hint{display:none}
+.note{margin:0;font-size:12px;line-height:1.45;color:var(--muted)}
+.help{position:sticky;bottom:0;margin:auto -18px 0;padding:12px 18px 14px;min-height:64px;background:var(--panel);border-top:1px solid var(--line);
+  font-size:12px;line-height:1.45;color:var(--soft)}
+
+.tpl,.looks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.tpl button{font-size:12px;padding:6px 4px;color:var(--soft);overflow:hidden;text-overflow:ellipsis}
+.tpl button[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
+.looks button{display:flex;flex-direction:column;align-items:stretch;gap:5px;padding:4px 4px 6px;font-size:11px;color:var(--soft);overflow:hidden}
+.looks button[aria-pressed="true"]{color:var(--text);border-color:var(--accent)}
+.smp{font-family:var(--mono);font-size:12.5px;letter-spacing:.06em;white-space:nowrap;overflow:hidden;padding:9px 0;border-radius:6px}
+.swatches{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px 6px}
+.swatches button{display:flex;flex-direction:column;gap:4px;padding:0;min-height:0;border:0;border-radius:8px;background:none;font-size:10.5px;color:var(--muted);overflow:hidden}
+.swatches i{display:block;height:26px;border-radius:8px;box-shadow:inset 0 0 0 1px #ffffff1f}
+.swatches button[aria-pressed="true"]{color:var(--text)}
+.swatches button[aria-pressed="true"] i{box-shadow:inset 0 0 0 2px var(--text)}
+
+@media (max-width:820px){
   html,body{height:auto}
-  .app{height:auto;grid-template-columns:minmax(0,1fr)}
-  .stage{height:min(72svh,125vw)}
+  .app{height:auto;grid-template-columns:minmax(0,1fr);grid-template-rows:auto}
+  .stage{flex:none;height:min(70svh,125vw)}
   .panel{overflow:visible}
+  .help{position:static;min-height:0}
 }
 </style>
 
 <div class="app">
-  <div class="stage" id="stageWrap">
-    <canvas id="stage" width="1024" height="1280" aria-label="Glyph art preview"></canvas>
-    <div class="drop" id="drop" hidden>Drop to convert</div>
+  <div class="view">
+    <div class="stage" id="stageWrap">
+      <canvas id="stage" width="1024" height="1280" aria-label="Glyph art preview"></canvas>
+      <div class="drop" id="drop" hidden>Drop to convert</div>
+    </div>
+    <div class="prog" id="prog"><i id="progbar"></i></div>
+    <div class="deck">
+      <p class="meta" id="status" aria-live="polite">Drop an image, GIF or video anywhere.</p>
+      <div class="transport">
+        <button id="surprise" title="Shortcut: R">Surprise me</button>
+        <button id="replay">Replay</button>
+        <button id="pause" title="Shortcut: Space">Pause</button>
+      </div>
+    </div>
   </div>
 
   <aside class="panel">
-    <div>
+    <header>
       <h1>Glyph Bloom</h1>
-      <p class="lede">Turns a picture, GIF, video or word into glowing glyph art with its own soundtrack.</p>
-    </div>
-    <div class="bar">
-      <button id="surprise" title="Shortcut: R">Surprise me</button>
-      <button id="replay">Replay</button>
-      <button id="pause" title="Shortcut: Space">Pause</button>
-    </div>
-    <p class="meta" id="status" aria-live="polite"></p>
+      <p class="lede">Any picture, GIF, video or word as glowing glyph art.</p>
+    </header>
     <nav class="tabs" role="tablist" aria-label="Settings">
       <button role="tab" data-tab="source">Source</button>
       <button role="tab" data-tab="look">Look</button>
@@ -131,10 +166,11 @@ input[type=color]{width:100%;height:30px;padding:2px;background:var(--field);bor
         <option value="two">Left to right</option>
         <option value="four">Four ways (kaleidoscope)</option>
       </select></label>
+      <p class="hint">Folds the picture so both halves match.</p>
     </section>
 
     <section class="tab" data-tab="look">
-      <p class="hint">A look sets characters, colour and screen effects in one click. Fine-tune in the other tabs.</p>
+      <p class="note">A look sets characters, colour and screen effects in one click.</p>
       <div class="looks" id="looks" role="group" aria-label="Looks"></div>
       <div class="row">
         <button id="saveLook">Save this look</button>
@@ -165,10 +201,12 @@ input[type=color]{width:100%;height:30px;padding:2px;background:var(--field);bor
       <label class="f" for="rain">Rain <input type="range" id="rain" data-k="rain" min="0" max="1" step="0.05" value="0"></label>
       <p class="hint">Bright drops of digits fall down every column, and the picture shows through their trails.</p>
       <label class="t" for="outline"><input type="checkbox" id="outline" data-k="outline" checked> Thin outline around the subject</label>
+      <p class="hint">Draws a faint line of characters around the edge of the subject.</p>
     </section>
 
     <section class="tab" data-tab="colour">
-      <label class="f" for="palette">Colour <select id="palette" data-k="palette">
+      <div class="swatches" id="swatches" role="group" aria-label="Colours"></div>
+      <label class="f" for="palette" hidden>Colour <select id="palette" data-k="palette">
         <option value="source">From the file</option>
         <option value="night">Night blue</option>
         <option value="phosphor">Phosphor</option>
@@ -209,16 +247,18 @@ input[type=color]{width:100%;height:30px;padding:2px;background:var(--field);bor
       <label class="f" for="scan">Scanlines <input type="range" id="scan" data-k="scan" min="0" max="1" step="0.05" value="0"></label>
       <label class="f" for="grain">Grain <input type="range" id="grain" data-k="grain" min="0" max="4" step="0.1" value="1"></label>
       <label class="f" for="fringe">Lens fringe <input type="range" id="fringe" data-k="fringe" min="0" max="4" step="0.1" value="1"></label>
-      <p class="hint">Old-screen effects: dark rows, film noise, and colour split toward the corners.</p>
+      <p class="hint" data-n="3">Old-screen effects: dark rows, film noise, and colour split toward the corners.</p>
       <label class="f" for="curve">Screen curve <input type="range" id="curve" data-k="curve" min="0" max="1" step="0.05" value="0"></label>
       <p class="hint">Bulges the picture like an old tube TV. The corners round off.</p>
       <label class="f" for="glitch">Glitch <input type="range" id="glitch" data-k="glitch" min="0" max="1" step="0.05" value="0"></label>
       <p class="hint">Rows jump sideways and colours tear, a few times a second.</p>
       <label class="t" for="paper"><input type="checkbox" id="paper" data-k="paper"> Ink on paper (light background)</label>
+      <p class="hint">Dark characters on a light page instead of light on dark.</p>
     </section>
 
     <section class="tab" data-tab="motion">
       <label class="t" for="intro"><input type="checkbox" id="intro" data-k="intro" checked> Play an intro</label>
+      <p class="hint">The picture builds itself up when it starts or replays.</p>
       <label class="f" for="introStyle">Intro style <select id="introStyle" data-k="introStyle">
         <option value="grow">Grow from the base</option>
         <option value="scan">Scan from the top</option>
@@ -228,18 +268,23 @@ input[type=color]{width:100%;height:30px;padding:2px;background:var(--field);bor
       </select></label>
       <p class="hint">How the picture appears. The built-in iris always grows its own way.</p>
       <label class="f" for="speed">Speed <input type="range" id="speed" data-k="speed" min="0.25" max="2" step="0.05" value="1"></label>
+      <p class="hint">How fast everything moves. 1 is normal speed.</p>
       <label class="t" for="camera"><input type="checkbox" id="camera" data-k="camera" checked> Camera moves</label>
+      <p class="hint">Slow push-ins and a close-up pass now and then.</p>
       <label class="t" for="hud"><input type="checkbox" id="hud" data-k="hud" checked> Readouts</label>
+      <p class="hint">The rulers, numbers and trackers around the picture.</p>
       <label class="f" for="caption">Caption <input type="text" id="caption" data-k="caption" maxlength="24" placeholder="Your own label" autocomplete="off" spellcheck="false"></label>
       <p class="hint">Replaces the second line in the bottom-left corner. Latin letters and digits.</p>
 
       <h2>3D</h2>
       <label class="t" for="three"><input type="checkbox" id="three" data-k="three"> 3D object</label>
+      <p class="hint">Turns the picture into a relief you can spin by dragging.</p>
       <label class="t" for="lift"><input type="checkbox" id="lift" data-k="lift" checked> Lift the subject off the background</label>
       <p class="hint">In 3D the subject is found automatically and turns, while the background stays flat and still behind it.</p>
       <p class="meta" id="liftnote"></p>
       <label class="t" for="spin"><input type="checkbox" id="spin" data-k="spin" checked> Turn by itself</label>
-      <p class="hint" id="turnhint">Drag the stage to turn it. Scroll to zoom.</p>
+      <p class="hint">Keeps turning slowly while you are not dragging.</p>
+      <p class="note" id="turnhint">Drag the stage to turn it. Scroll to zoom.</p>
       <button id="aiBtn">Work out depth with AI</button>
       <p class="hint" id="aiHint">Gives the 3D object real depth: nose nearer, shoulders further. The first use downloads a 27 MB model; it then runs on your device and the picture is not uploaded.</p>
       <button id="depthBtn">Add depth map</button>
@@ -260,41 +305,86 @@ input[type=color]{width:100%;height:30px;padding:2px;background:var(--field);bor
         <option value="dark">Dark</option>
         <option value="pulse">Pulse (with drums)</option>
       </select></label>
+      <p class="hint">The feel of the soundtrack. Auto reads it from the picture.</p>
       <label class="f" for="volume">Volume <input type="range" id="volume" data-k="volume" min="0" max="1" step="0.01" value="0.8"></label>
       <p class="hint">Colour picks the key, brightness the mode, detail the tempo. The intro, ruler ticks, trackers and pulses each have a sound. Recorded videos include it.</p>
       <button id="wav">Save soundtrack (WAV)</button>
     </section>
 
     <section class="tab" data-tab="save">
-      <label class="f" for="format">Frame <select id="format" data-k="format">
+      <h2>Frame</h2>
+      <label class="f" for="format">Shape <select id="format" data-k="format">
         <option value="4:5">4:5 portrait</option>
         <option value="1:1">1:1 square</option>
         <option value="9:16">9:16 story</option>
         <option value="16:9">16:9 wide</option>
       </select></label>
+      <p class="hint">The shape of the picture, GIF and video. The art is always fitted whole, never cropped.</p>
       <label class="f" for="res">Sharpness <select id="res" data-k="res">
         <option value="1">1× (1024 px)</option>
         <option value="2" selected>2× (2048 px)</option>
       </select></label>
+      <p class="hint">How many pixels the stage is drawn with. 2× is sharper and a little slower.</p>
       <label class="t" for="alpha"><input type="checkbox" id="alpha" data-k="alpha"> Transparent background</label>
-      <p class="hint">PNG, GIF and WebM video are saved without the backdrop, ready to lay over other footage.</p>
+      <p class="hint">Saves without the backdrop, ready to lay over other footage. Video is then recorded live as WebM, because MP4 cannot be see-through.</p>
+
+      <h2>Picture</h2>
+      <button id="png">Save PNG</button>
+
+      <h2>GIF</h2>
       <div class="row">
-        <button id="png">Save PNG</button>
-        <button id="gif">Save GIF</button>
+        <select id="gsize" aria-label="GIF size">
+          <option value="480">480 px</option>
+          <option value="640" selected>640 px</option>
+          <option value="800">800 px</option>
+        </select>
+        <select id="glen" aria-label="GIF length">
+          <option value="3">3 s</option>
+          <option value="4" selected>4 s</option>
+          <option value="6">6 s</option>
+          <option value="8">8 s</option>
+        </select>
+        <select id="gfps" aria-label="GIF smoothness">
+          <option value="12.5">12 fps</option>
+          <option value="20" selected>20 fps</option>
+          <option value="25">25 fps</option>
+        </select>
       </div>
+      <button id="gif">Save GIF</button>
+      <p class="hint" data-n="2">The GIF starts from this moment and loops without a jump: its end dissolves back into its beginning. Bigger, longer and smoother all make a heavier file.</p>
+
+      <h2>Video</h2>
       <div class="row">
-        <button id="record">Record video</button>
+        <select id="vsize" aria-label="Video size">
+          <option value="720">720 px</option>
+          <option value="1080" selected>1080 px</option>
+          <option value="2048">Full size</option>
+        </select>
         <select id="len" aria-label="Video length">
+          <option value="6">6 s</option>
           <option value="12">12 s</option>
           <option value="20" selected>20 s</option>
           <option value="30">30 s</option>
           <option value="57">57 s</option>
         </select>
+        <select id="vfps" aria-label="Video frame rate">
+          <option value="30" selected>30 fps</option>
+          <option value="60">60 fps</option>
+        </select>
       </div>
+      <label class="t" for="vsound"><input type="checkbox" id="vsound" checked> With the soundtrack</label>
+      <p class="hint">The video gets the music composed for this art, even if it is not playing right now.</p>
+      <label class="t" for="vstart"><input type="checkbox" id="vstart" checked> Start from the beginning</label>
+      <p class="hint">On: the video opens with the intro. Off: it starts from what is on the stage right now.</p>
+      <button id="record">Save video</button>
+      <p class="hint">MP4, drawn frame by frame, so it stays smooth even on a slow computer. Keep this tab in front while it renders.</p>
+
+      <h2>Share</h2>
       <button id="link">Copy link to this setup</button>
+      <p class="hint">The link carries every setting and the template or text. Your own files stay on your device, so they are not in it.</p>
       <input type="text" id="linkout" readonly hidden aria-label="Share link">
-      <p class="hint">The GIF is 6 seconds from this moment. The link carries every setting and the template or text. Your own files stay on your device, so they are not in it.</p>
     </section>
+    <p class="help" id="help"></p>
   </aside>
 </div>
 
@@ -1576,14 +1666,28 @@ const music = {
     while (this.next < ac.currentTime + 0.4) { const lv = levelAt(st.time + (this.next - ac.currentTime)); this.next += scheduleBar(this.E, this.sc, this.bar++, this.next, lv, this.sc.bright); }
   },
   feed(bright, yaw) { if (!this.on || !this.sc) return; const lv = levelAt(st.time); this.E.padF.frequency.setTargetAtTime((320 + 2900 * bright * lv) * (1 + 0.3 * Math.sin(yaw)), this.E.ac.currentTime, 0.25); },
-  tick(i) { if (this.on && this.sc) this.E.pluck(this.E.ac.currentTime + 0.02, degree(this.sc, i, 72), 0.8, (i % 2 ? 0.3 : -0.3), 0.9); },
-  ping(x) { if (this.on && this.sc && levelAt(st.time) > 0.3) { const d = this.sc.prog[((this.bar - 1) >> 1) % 4]; this.E.bell(this.E.ac.currentTime + 0.02, degree(this.sc, d + [0, 2, 4, 7][(Math.random() * 4) | 0], 84), 0.32, clamp(x * 2 - 1, -0.9, 0.9), false); } },
-  pulse() { if (this.on && this.sc) this.E.swell(this.E.ac.currentTime + 0.02, degree(this.sc, 0, 36), 0.16); },
-  burst() { if (this.on && this.sc) for (let k = 0; k < 6; k++) this.E.bell(this.E.ac.currentTime + 0.03 + k * 0.07 + Math.random() * 0.04, degree(this.sc, [0, 2, 4, 5, 7, 9][(Math.random() * 6) | 0], 96), 0.16, Math.random() * 1.6 - 0.8, false); },
+  cap: null, capT: 0,
+  fire(E, sc, bar, at, kind, a, lv) {
+    if (kind === 'tick') E.pluck(at, degree(sc, a, 72), 0.8, (a % 2 ? 0.3 : -0.3), 0.9);
+    else if (kind === 'ping') { if (lv > 0.3) { const d = sc.prog[((bar - 1) >> 1) % 4]; E.bell(at, degree(sc, d + [0, 2, 4, 7][(Math.random() * 4) | 0], 84), 0.32, clamp(a * 2 - 1, -0.9, 0.9), false); } }
+    else if (kind === 'pulse') E.swell(at, degree(sc, 0, 36), 0.16);
+    else for (let k = 0; k < 6; k++) E.bell(at + 0.01 + k * 0.07 + Math.random() * 0.04, degree(sc, [0, 2, 4, 5, 7, 9][(Math.random() * 6) | 0], 96), 0.16, Math.random() * 1.6 - 0.8, false);
+  },
+  ev(kind, a) {
+    if (this.cap) { this.cap.push([this.capT, kind, a, levelAt(st.time)]); return; }
+    if (this.on && this.sc) this.fire(this.E, this.sc, this.bar, this.E.ac.currentTime + 0.02, kind, a, levelAt(st.time));
+  },
+  tick(i) { this.ev('tick', i); }, ping(x) { this.ev('ping', x); }, pulse() { this.ev('pulse'); }, burst() { this.ev('burst'); },
+  // the whole score rendered offline; events are the tick, ping, pulse and burst moments collected while the frames were drawn
+  async renderBuffer(sec, rate, events, speed, t0) {
+    const ac = new OfflineAudioContext(2, Math.ceil(sec * rate), rate), E = buildEngine(ac), sc = composeScore(), bars = []; E.out.connect(ac.destination); E.tempo(sc.bpm);
+    E.padF.frequency.value = 2200 * sc.bright; let t = 0.05, n = 0;
+    while (t < sec) { bars.push(t); t += scheduleBar(E, sc, n++, t, levelAt((t0 || 0) + t * (speed || 1)), sc.bright); }
+    for (const [at, kind, a, lv] of events || []) { let b = 0; while (b < bars.length && bars[b] <= at) b++; this.fire(E, sc, b, Math.max(0.02, at), kind, a, lv); }
+    return ac.startRendering();
+  },
   async render(sec) {
-    const ac = new OfflineAudioContext(2, Math.ceil(sec * 44100), 44100), E = buildEngine(ac), sc = composeScore(); E.out.connect(ac.destination); E.tempo(sc.bpm);
-    E.padF.frequency.value = 2200 * sc.bright; let t = 0.05, n = 0; while (t < sec) t += scheduleBar(E, sc, n++, t, levelAt(t), sc.bright);
-    const buf = await ac.startRendering(), L = buf.getChannelData(0), R2 = buf.getChannelData(1), out = new DataView(new ArrayBuffer(44 + L.length * 4));
+    const buf = await this.renderBuffer(sec, 44100), L = buf.getChannelData(0), R2 = buf.getChannelData(1), out = new DataView(new ArrayBuffer(44 + L.length * 4));
     const w = (o, s2) => { for (let i = 0; i < s2.length; i++) out.setUint8(o + i, s2.charCodeAt(i)); };
     w(0, 'RIFF'); out.setUint32(4, 36 + L.length * 4, true); w(8, 'WAVEfmt '); out.setUint32(16, 16, true); out.setUint16(20, 1, true); out.setUint16(22, 2, true); out.setUint32(24, 44100, true); out.setUint32(28, 176400, true); out.setUint16(32, 4, true); out.setUint16(34, 16, true); w(36, 'data'); out.setUint32(40, L.length * 4, true);
     for (let i = 0; i < L.length; i++) { out.setInt16(44 + i * 4, clamp(L[i], -1, 1) * 32767, true); out.setInt16(46 + i * 4, clamp(R2[i], -1, 1) * 32767, true); }
@@ -1641,7 +1745,7 @@ function applySource(fresh) {
   const turning = src.kind === 'mesh';
   canvas.classList.toggle('turn', turning); $('three').checked = turning; $('three').disabled = base.kind === 'mesh' || !g3;
   $('depthBtn').textContent = base.depth ? 'Remove depth map' : 'Add depth map'; $('depthBtn').disabled = $('aiBtn').disabled = base.kind === 'mesh' || !g3;
-  $('spin').disabled = !turning; $('turnhint').textContent = turning ? 'Drag the stage to turn it. Scroll to zoom.' : 'Tick 3D object to turn any picture into a relief you can spin.';
+  $('spin').disabled = !turning; $('turnhint').textContent = turning ? 'Drag the stage to turn it. Scroll to zoom.' : 'Switch on 3D object to turn any picture into a relief you can spin.';
 }
 function setSource(s) {
   if (base && base !== s) { free3(base); if (base.stop) base.stop(); }
@@ -1688,12 +1792,12 @@ function startRecording() {
   mr.onstop = async () => {
     stream.getTracks().forEach(x => x.stop());
     const ext = type.startsWith('video/mp4') ? 'mp4' : 'webm', blob = new Blob(chunks, { type: type.split(';')[0] });
-    $('record').textContent = 'Record video'; $('record').classList.remove('rec');
+    $('record').textContent = 'Save video'; $('record').classList.remove('rec');
     const ok = await saveFile(fileStem() + '.' + ext, blob);
     say(ok ? 'Video ready · ' + (blob.size / 1048576).toFixed(1) + ' MB ' + ext.toUpperCase() : 'Save cancelled.');
   };
   rec = { mr, len: +$('len').value }; mr.start(500);
-  $('record').classList.add('rec'); say('Recording from the start. Keep this tab in front.');
+  $('record').classList.add('rec'); say('Recording live from the start. Keep this tab in front.');
 }
 function stopRecording() { if (!rec) return; const mr = rec.mr; rec = null; if (mr.state !== 'inactive') mr.stop(); }
 
@@ -1815,37 +1919,152 @@ function gifLZW(idx) {
   out[o] = 0; return out;
 }
 let gifBusy = false;
-async function makeGif(secs, onProgress) {
-  const dt = 0.08, n = Math.round(secs / dt), gw = canvas.width >= canvas.height ? 560 : 448, gh = Math.round(gw * canvas.height / canvas.width);
-  const tc = document.createElement('canvas'); tc.width = gw; tc.height = gh; const tg = tc.getContext('2d', { willReadFrequently:true });
-  const hist = new Uint32Array(32768), frames = [], clear = P.alpha, wasPaused = paused, grain = P.grain, live = src.kind === 'video' || (base && base.kind === 'video');
-  const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+const clipSize = short => {
+  const cw = canvas.width, ch = canvas.height, s = Math.min(short || 1e9, Math.min(cw, ch)), k = s / Math.min(cw, ch);
+  return [Math.max(2, Math.round(cw * k / 2) * 2), Math.max(2, Math.round(ch * k / 2) * 2)];
+};
+const isLive = () => src.kind === 'video' || (base && base.kind === 'video');
+const tickWait = ms => new Promise(r => setTimeout(r, ms));
+// o: { secs, size (short side, px), fps, from: 'start' | 'now' }. Frames are stored as run-length differences, so long clips stay small in memory.
+async function makeGif(o, onProgress, job) {
+  const delay = Math.max(2, Math.round(100 / (o.fps || 20))), dt = delay / 100, n = Math.max(2, Math.round(o.secs / dt));
+  const [gw, gh] = clipSize(o.size || 640), N = gw * gh, clear = P.alpha, live = isLive();
+  const k = o.from === 'start' ? 0 : Math.min(Math.round(0.7 / dt), n >> 2);   // frames that dissolve the end back into the beginning
+  const tc = document.createElement('canvas'); tc.width = gw; tc.height = gh; const tg = tc.getContext('2d', { willReadFrequently:true }); tg.imageSmoothingQuality = 'high';
+  const hist = new Uint32Array(32768), bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+  const cur = new Uint16Array(N), fr = new Uint16Array(N), scratch = new Uint16Array(N * 2 + 8), head = [], chainA = [], chainB = [];
+  const dith = o.dither === undefined ? 1 : o.dither;
+  const pack = (d, chain) => {
+    if (!chain.length) cur.fill(0xFFFF);
+    for (let y = 0, p = 0, q = 0; y < gh; y++) for (let x = 0; x < gw; x++, p += 4, q++) {
+      if (clear && d[p + 3] < 110) { fr[q] = 0x8000; continue; }
+      const dz = (bayer[(y & 3) * 4 + (x & 3)] / 2 - 3.75) * dith, r = clamp(d[p] + dz, 0, 255) >> 3, g = clamp(d[p + 1] + dz, 0, 255) >> 3, b = clamp(d[p + 2] + dz, 0, 255) >> 3, id = r << 10 | g << 5 | b;
+      fr[q] = id; hist[id]++;
+    }
+    let q = 0, w = 0;
+    while (q < N) {
+      let s = q; while (q < N && fr[q] === cur[q] && q - s < 65535) q++;
+      scratch[w++] = q - s; s = q; while (q < N && fr[q] !== cur[q] && q - s < 65535) q++;
+      scratch[w++] = q - s; for (let i = s; i < q; i++) scratch[w++] = cur[i] = fr[i];
+    }
+    chain.push(scratch.slice(0, w));
+  };
+  const wasPaused = paused, grain = P.grain;
   paused = true; P.grain = 0;
   try {
-    for (let f = 0; f < n; f++) {
-      advance(dt); render(); tg.clearRect(0, 0, gw, gh); tg.drawImage(canvas, 0, 0, gw, gh);
-      const d = tg.getImageData(0, 0, gw, gh).data, fr = new Uint16Array(gw * gh);
-      for (let y = 0, o = 0, q = 0; y < gh; y++) for (let x = 0; x < gw; x++, o += 4, q++) {
-        if (clear && d[o + 3] < 110) { fr[q] = 0x8000; continue; }
-        const dz = bayer[(y & 3) * 4 + (x & 3)] / 2 - 3.75, r = clamp(d[o] + dz, 0, 255) >> 3, g = clamp(d[o + 1] + dz, 0, 255) >> 3, b = clamp(d[o + 2] + dz, 0, 255) >> 3, id = r << 10 | g << 5 | b;
-        fr[q] = id; hist[id]++;
-      }
-      frames.push(fr);
-      if (f % 3 === 0 || live) { onProgress(f / n * 0.6); await new Promise(r => setTimeout(r, live ? dt * 1000 : 0)); }
+    if (o.from === 'start') restart();
+    for (let f = 0; f < n + k; f++) {
+      if (job && job.cancel) return null;
+      advance(dt * P.speed); render(); tg.clearRect(0, 0, gw, gh); tg.drawImage(canvas, 0, 0, gw, gh);
+      const d = tg.getImageData(0, 0, gw, gh).data;
+      if (f < k) head.push(d);
+      else if (f < n) pack(d, chainB);
+      else { const i = f - n, h = head[i], a = (i + 1) / (k + 1), b = 1 - a; for (let p = 0; p < d.length; p++) d[p] = d[p] * b + h[p] * a; head[i] = null; pack(d, chainA); }
+      if (f % 2 === 0 || live) { onProgress(f / (n + k) * 0.6); await tickWait(live ? dt * 1000 : 0); }
     }
   } finally { P.grain = grain; paused = wasPaused; last = performance.now(); }
-  const { pal, lut } = gifPalette(hist), parts = [];
-  const head = new Uint8Array(13 + 768 + 19); head.set([71, 73, 70, 56, 57, 97, gw & 255, gw >> 8, gh & 255, gh >> 8, 0xF7, 0, 0]); head.set(pal, 13);
-  head.set([0x21, 0xFF, 11, 78, 69, 84, 83, 67, 65, 80, 69, 50, 46, 48, 3, 1, 0, 0, 0], 13 + 768); parts.push(head);
-  const idx = new Uint8Array(gw * gh);
-  for (let f = 0; f < n; f++) {
-    const fr = frames[f]; for (let q = 0; q < fr.length; q++) idx[q] = fr[q] === 0x8000 ? 255 : lut[fr[q]];
-    parts.push(new Uint8Array([0x21, 0xF9, 4, clear ? 9 : 0, 8, 0, 255, 0, 0x2C, 0, 0, 0, 0, gw & 255, gw >> 8, gh & 255, gh >> 8, 0, 8]), gifLZW(idx));
+  const { pal, lut } = gifPalette(hist), parts = [], frames = chainA.concat(chainB);
+  const top = new Uint8Array(13 + 768 + 19); top.set([71, 73, 70, 56, 57, 97, gw & 255, gw >> 8, gh & 255, gh >> 8, 0xF7, 0, 0]); top.set(pal, 13);
+  top.set([0x21, 0xFF, 11, 78, 69, 84, 83, 67, 65, 80, 69, 50, 46, 48, 3, 1, 0, 0, 0], 13 + 768); parts.push(top);
+  const idx = new Uint8Array(N), shown = new Uint8Array(N);
+  const fuzz = o.fuzz === undefined ? 150 : o.fuzz;   // how far a pixel may drift from what is already on screen before it is redrawn
+  for (let f = 0; f < frames.length; f++) {
+    if (job && job.cancel) return null;
+    const c = frames[f]; let q = 0, i = 0;
+    if (f === 0 || f === chainA.length) cur.fill(0xFFFF);
+    while (i < c.length) { q += c[i++]; const m = c[i++]; for (let e = q + m; q < e; q++) cur[q] = c[i++]; }
+    // a pixel that barely changed since it was last drawn stays see-through, which is what keeps the file small
+    if (clear || f === 0) for (q = 0; q < N; q++) shown[q] = idx[q] = cur[q] === 0x8000 ? 255 : lut[cur[q]];
+    else for (q = 0; q < N; q++) {
+      const v = lut[cur[q]], s3 = shown[q] * 3, v3 = v * 3, dr = pal[v3] - pal[s3], dg = pal[v3 + 1] - pal[s3 + 1], db = pal[v3 + 2] - pal[s3 + 2];
+      if (dr * dr + dg * dg + db * db <= fuzz) idx[q] = 255; else shown[q] = idx[q] = v;
+    }
+    const hold = o.from === 'start' && f === frames.length - 1 ? 150 : delay;
+    parts.push(new Uint8Array([0x21, 0xF9, 4, clear ? 9 : f > 0 ? 5 : 4, hold & 255, hold >> 8, 255, 0, 0x2C, 0, 0, 0, 0, gw & 255, gw >> 8, gh & 255, gh >> 8, 0, 8]), gifLZW(idx));
     frames[f] = null;
-    if (f % 4 === 0) { onProgress(0.6 + f / n * 0.4); await new Promise(r => setTimeout(r, 0)); }
+    if (f % 4 === 0) { onProgress(0.6 + f / frames.length * 0.4); await tickWait(0); }
   }
   parts.push(new Uint8Array([0x3B]));
-  return new Blob(parts, { type:'image/gif' });
+  const blob = new Blob(parts, { type:'image/gif' }); blob.note = gw + '×' + gh + ' · ' + Math.round(100 / delay) + ' fps';
+  return blob;
+}
+
+/* ------------------------------------------------------------------ video export: every frame is drawn and encoded one by one, so nothing is dropped */
+let muxLib = null;
+const loadMux = () => muxLib || (muxLib = new Promise((ok, no) => {
+  if (window.Mp4Muxer) return ok(window.Mp4Muxer);
+  const s = document.createElement('script'); s.src = 'https://cdn.jsdelivr.net/npm/mp4-muxer@5.2.1/build/mp4-muxer.min.js';
+  s.onload = () => window.Mp4Muxer ? ok(window.Mp4Muxer) : no(new Error('mux')); s.onerror = () => { muxLib = null; no(new Error('mux')); }; document.head.appendChild(s);
+}));
+function avcCodec(w, h, fps) {
+  const mb = Math.ceil(w / 16) * Math.ceil(h / 16), rate = mb * fps;
+  for (const [id, frame, per] of [['28', 8192, 245760], ['2A', 8704, 522240], ['33', 36864, 983040], ['34', 36864, 2073600]]) if (mb <= frame && rate <= per) return 'avc1.6400' + id;
+  return 'avc1.640034';
+}
+async function pickVideoCodec(w, h, fps, bitrate, force) {
+  if (!window.VideoEncoder) return null;
+  const tries = [['avc', avcCodec(w, h, fps)], ['vp9', 'vp09.00.40.08'], ['av1', 'av01.0.08M.08']].filter(t => !force || t[0] === force);
+  for (const [mux, codec] of tries) {
+    const cfg = { codec, width: w, height: h, bitrate, framerate: fps, latencyMode:'quality' };
+    try { if ((await VideoEncoder.isConfigSupported(cfg)).supported) return { mux, cfg }; } catch (e) { /* try the next one */ }
+  }
+  return null;
+}
+async function pickAudioCodec() {
+  if (!window.AudioEncoder) return null;
+  for (const [mux, codec] of [['aac', 'mp4a.40.2'], ['opus', 'opus']]) {
+    const cfg = { codec, sampleRate: 48000, numberOfChannels: 2, bitrate: 192000 };
+    try { if ((await AudioEncoder.isConfigSupported(cfg)).supported) return { mux, cfg }; } catch (e) { /* try the next one */ }
+  }
+  return null;
+}
+// o: { secs, size (short side, px), fps, from: 'start' | 'now', sound, codec (tests only) }. Resolves to a Blob, or null when cancelled or unsupported.
+async function makeVideo(o, onProgress, job) {
+  const fps = o.fps || 30, n = Math.max(2, Math.round(o.secs * fps)), [w, h] = clipSize(o.size || 1080);
+  const bitrate = Math.round(clamp(w * h * fps * 0.2, 3e6, 45e6));
+  const vc = await pickVideoCodec(w, h, fps, bitrate, o.codec); if (!vc) return null;
+  const ac = o.sound ? await pickAudioCodec() : null, M = await loadMux();
+  const target = new M.ArrayBufferTarget();
+  const muxer = new M.Muxer({ target, fastStart:'in-memory', firstTimestampBehavior:'offset', video: { codec: vc.mux, width: w, height: h, frameRate: fps }, audio: ac ? { codec: ac.mux, numberOfChannels: 2, sampleRate: 48000 } : undefined });
+  let fail = null;
+  const enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: e => { fail = e; } });
+  enc.configure(vc.cfg);
+  const fc = document.createElement('canvas'); fc.width = w; fc.height = h; const fg = fc.getContext('2d', { alpha:false }); fg.imageSmoothingQuality = 'high';
+  const wasPaused = paused, live = isLive(), events = [];
+  paused = true;
+  try {
+    if (o.from === 'start') restart();
+    const t0 = st.time; music.cap = events;
+    for (let f = 0; f < n; f++) {
+      if (fail) throw fail;
+      if (job && job.cancel) { enc.close(); return null; }
+      music.capT = f / fps; advance(P.speed / fps); render();
+      fg.fillStyle = '#000'; fg.fillRect(0, 0, w, h); fg.drawImage(canvas, 0, 0, w, h);
+      const frame = new VideoFrame(fc, { timestamp: Math.round(f * 1e6 / fps), duration: Math.round(1e6 / fps) });
+      enc.encode(frame, { keyFrame: f % (fps * 2) === 0 }); frame.close();
+      while (enc.encodeQueueSize > 3) await tickWait(1);
+      if (f % 3 === 0 || live) { onProgress(f / n * (ac ? 0.9 : 1), f / fps); await tickWait(live ? 1000 / fps : 0); }
+    }
+    music.cap = null;
+    await enc.flush(); enc.close(); if (fail) throw fail;
+    if (ac) {
+      onProgress(0.92, o.secs);
+      const buf = await music.renderBuffer(n / fps, 48000, events, P.speed, t0), L = buf.getChannelData(0), R2 = buf.getChannelData(1), vol = clamp(P.volume / 0.8, 0, 1.25);
+      const aenc = new AudioEncoder({ output: (chunk, meta) => muxer.addAudioChunk(chunk, meta), error: e => { fail = e; } });
+      aenc.configure(ac.cfg);
+      for (let i = 0; i < L.length; i += 4800) {
+        const m = Math.min(4800, L.length - i), data = new Float32Array(m * 2);
+        for (let j = 0; j < m; j++) { data[j] = clamp(L[i + j] * vol, -1, 1); data[m + j] = clamp(R2[i + j] * vol, -1, 1); }
+        const ad = new AudioData({ format:'f32-planar', sampleRate: 48000, numberOfFrames: m, numberOfChannels: 2, timestamp: Math.round(i * 1e6 / 48000), data });
+        aenc.encode(ad); ad.close();
+      }
+      await aenc.flush(); aenc.close(); if (fail) throw fail;
+    }
+    muxer.finalize();
+  } finally { music.cap = null; paused = wasPaused; last = performance.now(); }
+  const blob = new Blob([target.buffer], { type:'video/mp4' });
+  blob.note = w + '×' + h + ' · ' + fps + ' fps' + (ac ? '' : o.sound ? ' · no sound (this browser cannot encode audio)' : '') + (vc.mux === 'avc' ? '' : ' · ' + vc.mux.toUpperCase() + ' video, some Apple players may not open it');
+  return blob;
 }
 
 /* ------------------------------------------------------------------ character sets and looks */
@@ -1916,15 +2135,38 @@ let myLooks = store.get('gb.looks', []); if (!Array.isArray(myLooks)) myLooks = 
 function setCustomPalette() {
   PALETTES.custom = { ramp:[P.c1, P.c2, P.c3], rampRGB:[hex(P.c1), hex(P.c2), hex(P.c3)], accent:P.c3, accentRGB:hex(P.c3), label:'CUSTOM' };
   $('customCols').hidden = P.palette !== 'custom';
+  markSwatches();
+}
+function markSwatches() {
+  for (const b of $('swatches').children) {
+    const k = b.dataset.key, pal = PALETTES[k]; b.setAttribute('aria-pressed', String(P.palette === k));
+    b.firstChild.style.background = pal ? 'linear-gradient(90deg,' + pal.ramp.join(',') + ')' : 'conic-gradient(from 210deg,#ff6b8b,#ffd36b,#6bffb0,#6bb8ff,#b06bff,#ff6b8b)';
+  }
+}
+function buildSwatches() {
+  for (const op of $('palette').options) {
+    const k = op.value, b = document.createElement('button');
+    b.dataset.key = k; b.title = op.textContent; b.append(document.createElement('i'), k === 'source' ? 'File' : k === 'custom' ? 'Custom' : op.textContent.split(' ')[0]);
+    b.onclick = () => { $('palette').value = k; $('palette').dispatchEvent(new Event('change')); };
+    $('swatches').appendChild(b);
+  }
+  markSwatches();
+}
+const HELP0 = 'Point at any control to see what it does. Double-click a slider to reset it.';
+function explain(e) {
+  const row = e.target.closest && e.target.closest('.tab > label, .tab > .swatches, .tab > .looks, .tab > .tpl, .tab > button, .tab > .row');
+  if (!row) return;
+  let h = row.nextElementSibling, d = 1; while (h && !h.classList.contains('hint')) { h = h.nextElementSibling; d++; }
+  $('help').textContent = h && d <= (+h.dataset.n || 1) ? h.textContent : HELP0;
 }
 function showVals() {
-  for (const el of document.querySelectorAll('input[type=range][data-k]')) { const o = el.nextElementSibling; if (o) o.textContent = (+el.value).toFixed(+el.step >= 1 ? 0 : +el.step >= 0.1 ? 1 : 2); }
+  for (const el of document.querySelectorAll('input[type=range][data-k]')) { const o = el.nextElementSibling; if (o) o.textContent = (+el.value).toFixed(+el.step >= 1 ? 0 : +el.step >= 0.1 ? 1 : 2); el.style.setProperty('--p', ((el.value - el.min) / (el.max - el.min) * 100).toFixed(1) + '%'); }
 }
 function buildLooks() {
   const box = $('looks'); box.textContent = '';
   const add = (key, label, p, fn) => {
     const full = Object.assign({}, LOOK_BASE, p), pal = PALETTES[full.palette], b = document.createElement('button'), s = document.createElement('span'), n = document.createElement('span');
-    s.className = 'smp'; s.textContent = SAMPLE[full.charset] || SAMPLE.signal; s.style.color = full.paper ? '#cfc8b8' : pal ? pal.ramp[1] : full.rainbow ? '#ff8ad8' : '#9aa4ff';
+    s.className = 'smp'; s.textContent = SAMPLE[full.charset] || SAMPLE.signal; s.style.color = full.paper ? '#2a2620' : pal ? pal.ramp[1] : full.rainbow ? '#ff8ad8' : '#9aa4ff'; s.style.background = full.paper ? '#e6dfcf' : full.back;
     n.textContent = label; b.append(s, n); b.dataset.key = key; b.setAttribute('aria-pressed', String(P.look === key)); b.onclick = fn; box.appendChild(b);
   };
   for (const [key, label, p] of LOOKS) add(key, label, p, () => applyLook(key));
@@ -1956,7 +2198,9 @@ function togglePause() { paused = !paused; last = performance.now(); $('pause').
 function wireUI() {
   const tabs = [...document.querySelectorAll('.tabs button')];
   const show = name => { for (const b of tabs) b.setAttribute('aria-selected', String(b.dataset.tab === name)); for (const s of document.querySelectorAll('.tab')) s.hidden = s.dataset.tab !== name; store.set('gb.tab', name); };
-  for (const b of tabs) b.onclick = () => show(b.dataset.tab);
+  for (const b of tabs) b.onclick = () => { show(b.dataset.tab); $('help').textContent = HELP0; };
+  buildSwatches(); $('help').textContent = HELP0;
+  $('help').parentNode.addEventListener('pointerover', explain); $('help').parentNode.addEventListener('focusin', explain);
   const t0 = store.get('gb.tab', 'source'); show(tabs.some(b => b.dataset.tab === t0) ? t0 : 'source');
   for (const el of document.querySelectorAll('input[type=range][data-k]')) {
     const o = document.createElement('span'); o.className = 'val'; el.after(o); el.title = 'Double-click to reset';
@@ -2028,11 +2272,33 @@ function wire() {
   };
   $('depthBtn').onclick = () => { if (base.depth) { base.depth = null; applySource(false); } else $('depthFile').click(); };
   $('depthFile').onchange = async e => { const f = e.target.files[0]; e.target.value = ''; if (!f) return; try { base.depth = await createImageBitmap(f); P.three = true; applySource(false); say('Depth map added. Drag the stage to turn it.'); } catch (err) { say('Could not read that depth map.', true); } };
+  let job = null;
+  const mb = b => (b.size / 1048576).toFixed(1) + ' MB', clipButtons = [$('gif'), $('record'), $('png')];
+  const begin = (btn, label) => { job = { cancel:false, btn, label }; btn.classList.add('rec'); for (const b of clipButtons) b.disabled = b !== btn; $('prog').classList.add('on'); };
+  const finish = () => { job.btn.textContent = job.label; job.btn.classList.remove('rec'); for (const b of clipButtons) b.disabled = false; $('prog').classList.remove('on'); $('progbar').style.width = '0'; job = null; };
+  const progress = (v, what) => { if (!job) return; $('progbar').style.width = (v * 100).toFixed(1) + '%'; job.btn.textContent = 'Cancel · ' + Math.round(v * 100) + '%'; say(what); };
   $('gif').onclick = async () => {
-    if (gifBusy) return; gifBusy = true;
-    try { const b = await makeGif(6, v => say('Making GIF … ' + Math.round(v * 100) + '%')); const ok = await saveFile(fileStem() + '.gif', b); say(ok ? 'GIF ready · ' + (b.size / 1048576).toFixed(1) + ' MB' : 'Save cancelled.'); }
-    catch (e) { say('Could not make the GIF.', true); }
-    gifBusy = false;
+    if (job) { job.cancel = true; return; }
+    begin($('gif'), 'Save GIF');
+    try {
+      const b = await makeGif({ secs: +$('glen').value, size: +$('gsize').value, fps: +$('gfps').value, from:'now' }, v => progress(v, 'Making the GIF …'), job);
+      if (!b) say('Cancelled.'); else { const ok = await saveFile(fileStem() + '.gif', b); say(ok ? 'GIF ready · ' + mb(b) + ' · ' + b.note : 'Save cancelled.'); }
+    } catch (e) { say('Could not make the GIF.', true); }
+    finish();
+  };
+  $('record').onclick = async () => {
+    if (rec) { stopRecording(); return; }
+    if (job) { job.cancel = true; return; }
+    if (P.alpha || !window.VideoEncoder) { startRecording(); return; }
+    begin($('record'), 'Save video');
+    let live = false;
+    try {
+      const b = await makeVideo({ secs: +$('len').value, size: +$('vsize').value, fps: +$('vfps').value, from: $('vstart').checked ? 'start' : 'now', sound: $('vsound').checked }, v => progress(v, 'Rendering the video …'), job);
+      if (b) { const ok = await saveFile(fileStem() + '.mp4', b); say(ok ? 'Video ready · ' + mb(b) + ' · ' + b.note : 'Save cancelled.'); }
+      else if (job.cancel) say('Cancelled.'); else live = true;
+    } catch (e) { say('The video could not be encoded: ' + (e && e.message || 'unknown error') + '.', true); }
+    finish();
+    if (live) startRecording();
   };
   $('link').onclick = () => {
     const url = shareLink(), show = () => { const el = $('linkout'); el.hidden = false; el.value = url; el.focus(); el.select(); say('Copy the link above.'); };
@@ -2040,7 +2306,6 @@ function wire() {
   };
   $('replay').onclick = restart;
   $('png').onclick = () => { render(); canvas.toBlob(async b => { if (b) { const ok = await saveFile(fileStem() + '.png', b); say(ok ? 'PNG ready · ' + canvas.width + '×' + canvas.height : 'Save cancelled.'); } }, 'image/png'); };
-  $('record').onclick = () => rec ? stopRecording() : startRecording();
   $('play').onclick = () => {
     if (music.on) { music.stop(); $('play').textContent = 'Play soundtrack'; $('play').classList.remove('primary'); return; }
     if (music.start() === false) { $('score').textContent = 'This browser has no Web Audio.'; return; }
@@ -2068,7 +2333,7 @@ if (!gl) { say('This browser has no WebGL 2, so the stage cannot draw.', true); 
 else {
   initGL(); setStage(); setCustomPalette(); wire(); wireUI(); setSource(irisSource()); loadShared();
   const m = /[#&]t=([\d.]+)/.exec(location.hash);
-  window.GB = { P, st, orbit, music, async ai() { const notes = []; const bmp = await aiDepth(m => notes.push(m)); base.depth = bmp; P.three = true; applySource(false); const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; c.getContext('2d').drawImage(bmp, 0, 0); return c.toDataURL('image/png'); }, link: shareLink, text(t) { setSource(textSource(t)); }, depth(bmp) { base.depth = bmp; P.three = true; applySource(false); }, async gif(sec) { const u = new Uint8Array(await (await makeGif(sec, () => {})).arrayBuffer()); let x = ''; for (let i = 0; i < u.length; i += 32768) x += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(x); }, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); st.revealDirty = true; }, surprise, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
+  window.GB = { P, st, orbit, music, async ai() { const notes = []; const bmp = await aiDepth(m => notes.push(m)); base.depth = bmp; P.three = true; applySource(false); const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height; c.getContext('2d').drawImage(bmp, 0, 0); return c.toDataURL('image/png'); }, link: shareLink, text(t) { setSource(textSource(t)); }, depth(bmp) { base.depth = bmp; P.three = true; applySource(false); }, async b64(blob) { const u = new Uint8Array(await blob.arrayBuffer()); let x = ''; for (let i = 0; i < u.length; i += 32768) x += String.fromCharCode.apply(null, u.subarray(i, i + 32768)); return btoa(x); }, async gif(o) { return this.b64(await makeGif(o, () => {})); }, async video(o) { const b = await makeVideo(o, () => {}); return b ? b.note + '|' + await this.b64(b) : ''; }, look: applyLook, score: () => composeScore().name + ' (light ' + st.profile.l.toFixed(2) + ', detail ' + st.profile.e.toFixed(2) + ')', sync() { syncUI(); setCharset(); st.revealDirty = true; }, surprise, restart, setSource, loadFile, apply: applySource, template(k) { setSource(TEMPLATES.find(x => x[0] === k)[2]()); }, seek(t) { restart(); while (st.time < t) advance(st.time < t - 2 ? 1 / 3 : 1 / 12); render(); }, pause(v) { paused = v; }, step(dt) { advance(dt); render(); return canvas.toDataURL('image/png'); }, shot() { render(); return canvas.toDataURL('image/png'); }, stage: setStage };
   if (m) window.GB.seek(+m[1]);
   requestAnimationFrame(loop);
 }
