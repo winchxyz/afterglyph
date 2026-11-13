@@ -50,16 +50,18 @@ On top of the grid: bloom, a slight colour fringe, film grain, and live readouts
 - **Editor.** Paint over what must stay or go, on top of any cut, with undo. The same editor sets a focus point and places your own marks.
 - **Focus point.** Click the spot that matters: the close-up, the tracker, the pulse and a spotlight aim at it.
 - **Light and dark.** Dark drawings on light paper are noticed and swapped automatically, colours kept; or force it either way.
-- **Fifteen looks.** Signal, Terminal, Matrix, Amber CRT, Blueprint, Halftone, Blocks, Vapor, Glitch, Prism, Thermal, Gold, Kaleido, Newsprint and Typewriter. One click sets characters, colour and screen effects. *Surprise me* (or the R key) rolls a random one, and you can save your own.
-- **Character sets.** Mixed symbols, classic ASCII, the full 70-character ramp, halftone dots, shade blocks, lines only, digits, binary, or your own characters (sorted from light to heavy automatically).
+- **Sixteen looks.** Signal, Terminal, Matrix, Amber CRT, Blueprint, Halftone, Blocks, Vapor, Glitch, Prism, Thermal, Gold, Kaleido, Newsprint, Marble and Typewriter. One click sets characters, colour and screen effects. *Surprise me* (or the R key) rolls a random one, and you can save your own.
+- **Character sets.** Mixed symbols, classic ASCII, the full 70-character ramp, halftone dots, shade blocks, lines only, digits, binary, random letters, oldskool `_/\-+=.()<>:`, newskool `$#Xxo`, Braille dots, or your own characters (sorted from light to heavy automatically).
 - **Colour.** From the file, thirteen palettes or your own three colours, plus a backdrop colour, hue shift, rainbow spread and colour drift over time.
 - **Effects.** Glow, scanlines, grain, lens fringe, screen curve, digit rain, mirror and kaleidoscope, ink on paper. Five intro styles and a speed control.
+- **Lens and light.** Exposure, star glints on the brightest spots and a lens halo. On a 3D object the light can stay put, travel around it or sweep side to side, with a shadow depth control.
 - **Glitch controls.** Amount, row shift, row height, speed, colour split, jumping blocks, static, picture roll and character scramble.
 - **Every overlay is editable.** Tracker, readouts, ruler, caption, sparks, pulse, rain and your own marks each have a switch, a shape, a colour and speed and size sliders. Place marks by hand with your own labels when the automatic ones land in the wrong spot.
-- **Tabbed panel.** Source, Look, Colour, Motion, Effects, Sound, Save. Colours are swatches, looks are sample cards, every slider shows its value and resets on double-click, and a help line at the bottom explains whatever you point at. Space pauses.
+- **Glass interface.** A top bar with Open and Save, the stage, and one inspector with a rail of seven tabs: Source, Look, Colour, Motion, Effects, Sound, Save. The page glows faintly in the colours of the art. Every slider shows its value and resets on double-click, and a help line at the bottom explains the control under the pointer.
 - **Soundtrack.** A generative score composed from the art: the dominant colour picks the key, brightness the mode, detail the tempo, the file name the melody. Pads, bass, plucks, bells and optional drums run through a reverb and a ping-pong delay. The intro, ruler ticks, trackers and pulses each trigger a sound. Five moods, endless variations, WAV export.
 - **Video.** MP4 (H.264 + AAC) drawn and encoded frame by frame with WebCodecs, so nothing is dropped on a slow machine: 720 px, 1080 px or full size, 30 or 60 fps, 6 to 57 seconds, with the soundtrack mixed in offline. Also a PNG up to 2048 px wide.
 - **GIF and share link.** A looping GIF up to 800 px and 25 fps whose end dissolves back into its start, so there is no jump; unchanged pixels are skipped to keep the file small. Or copy a link that carries every setting and the template or text.
+- **Real text out.** Copy the frame as plain characters, or save it as .txt, a coloured .html page or an .ans file with ANSI colour codes for a terminal.
 - **Transparent background.** PNG, GIF and WebM video without the black, ready to lay over other footage.
 - **Private.** Files never leave the browser. There is nothing to upload to.
 
