@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Geist+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: smoked glass over a soft glow taken from the art itself. A top bar with the three main actions, the stage, and one inspector with a rail of tabs. Neutral greys only; the art is the only colour on the page. */
+/* Layout: smoked glass over a still, soft haze. A top bar with the three main actions, the stage, and one inspector with a rail of tabs. Neutral greys only; the art is the only colour on the page. */
 :root{
   color-scheme: dark;
   --ink:#0a0a0b; --panel:#19191b; --glass:rgba(32,32,35,.56); --card:rgba(255,255,255,.045); --line:rgba(255,255,255,.085); --field:rgba(255,255,255,.07); --raise:rgba(255,255,255,.17);
@@ -13,7 +13,7 @@
 *{box-sizing:border-box}
 html,body{height:100%}
 body{background:var(--ink);color:var(--text);font-family:var(--sans);font-size:13px;line-height:1.45;-webkit-font-smoothing:antialiased}
-#amb{position:fixed;left:-12%;top:-12%;width:124%;height:124%;filter:blur(72px) saturate(1.5);opacity:.7;pointer-events:none}
+#amb{position:fixed;inset:0;pointer-events:none;background:radial-gradient(60% 55% at 22% 18%,rgba(126,138,190,.20),transparent 70%),radial-gradient(55% 60% at 82% 78%,rgba(190,150,128,.14),transparent 70%),radial-gradient(45% 40% at 68% 12%,rgba(255,255,255,.06),transparent 70%)}
 .app{position:relative;height:100%;display:grid;grid-template-columns:minmax(0,1fr) 404px;grid-template-rows:auto minmax(0,1fr);gap:12px 14px;padding-block:12px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 
@@ -146,7 +146,7 @@ input[type=checkbox]:disabled{opacity:.4;cursor:default}
 }
 </style>
 
-<canvas id="amb" width="32" height="40" aria-hidden="true"></canvas>
+<div id="amb" aria-hidden="true"></div>
 <div class="app">
   <header class="top">
     <div class="brand">
@@ -2093,7 +2093,7 @@ function loop(now) {
   requestAnimationFrame(loop);
   const dt = Math.min(0.1, (now - last) / 1000 || 0.016); last = now;
   if (paused) return;
-  advance(dt * P.speed); render(); recTick(); ambient();
+  advance(dt * P.speed); render(); recTick();
 }
 
 /* ------------------------------------------------------------------ saving */
@@ -2555,13 +2555,6 @@ function wireTop() {
       .then(r => r.ok ? r.json() : null).then(j => { if (j && typeof j.stargazers_count === 'number') { show(j.stargazers_count); store.set('gb.stars', j.stargazers_count + '|' + Date.now()); } else if (seen.length === 2) show(+seen[0]); })
       .catch(() => { if (seen.length === 2) show(+seen[0]); });
   } catch (e) { /* no network access here */ }
-}
-// The page glows faintly in the colours of the art: a tiny copy of the stage, blurred by CSS, refreshed a few times a second.
-const amb = { g: null, n: 0 };
-function ambient() {
-  if (amb.n++ % 10) return;
-  if (!amb.g) amb.g = $('amb').getContext('2d');
-  try { amb.g.clearRect(0, 0, 32, 40); amb.g.drawImage(canvas, 0, 0, 32, 40); } catch (e) { /* nothing to show */ }
 }
 
 /* ------------------------------------------------------------------ the frame as real text: plain, coloured HTML, ANSI */
