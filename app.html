@@ -596,7 +596,7 @@ const FONT = {
 'Q':'.###./#...#/#...#/#...#/#.#.#/#..#./.##.#','R':'####./#...#/#...#/####./#.#../#..#./#...#',
 'S':'.####/#..../#..../.###./....#/....#/####.','T':'#####/..#../..#../..#../..#../..#../..#..',
 'U':'#...#/#...#/#...#/#...#/#...#/#...#/.###.','V':'#...#/#...#/#...#/#...#/#...#/.#.#./..#..',
-'W':'#...#/#...#/#...#/#.#.#/#.#.#/#.#.#/.#.#.','X':'#...#/#...#/.#.#./..#../.#.#./#...#/#...#',
+'@':'.###./#...#/#.###/#.#.#/#.###/#..../.###.','W':'#...#/#...#/#...#/#.#.#/#.#.#/#.#.#/.#.#.','X':'#...#/#...#/.#.#./..#../.#.#./#...#/#...#',
 'Y':'#...#/#...#/#...#/.#.#./..#../..#../..#..','Z':'#####/....#/...#./..#../.#.../#..../#####',
 '.':'...../...../...../...../...../.##../.##..','/':'....#/...#./...#./..#../.#.../.#.../#....',
 '#':'.#.#./.#.#./#####/.#.#./#####/.#.#./.#.#.','-':'...../...../...../#####/...../...../.....',
@@ -1780,11 +1780,13 @@ function updateOverlays(t, dt) {
     if (!st.anchor) st.anchor = { x: tx, y: ty, th: S.theta }; else { st.anchor.x = lerp(st.anchor.x, tx, 0.08); st.anchor.y = lerp(st.anchor.y, ty, 0.08); st.anchor.th = lerp(st.anchor.th, S.theta, 0.1); }
   }
 }
+const TAG = '@WINCHXYZ';
 function drawHud(t) {
   const g = hctx; g.clearRect(0, 0, W0, H0);
   const ps = Math.max(1, Math.round(2 * P.sp_size));
   for (const q of st.parts) { g.globalAlpha = clamp(1 - q.life / q.max, 0, 1) * 0.9; g.fillStyle = q.col; g.fillRect(Math.round(q.x), Math.round(q.y), ps, ps); }
-  g.globalAlpha = 1;
+  // the maker's tag: in every picture, GIF and video, but quiet
+  g.globalAlpha = 1; g.fillStyle = 'rgba(255,255,255,0.2)'; drawText(g, TAG, W0 - 26, H0 - 34, 2, 'r');
   if (!P.hud) return;
   const S = st.stats, has = S && S.n > 0;
   const dots = (x0, y0, x1, y1, n) => { for (let i = 0; i < n; i++) g.fillRect(Math.round(lerp(x0, x1, i / (n - 1))), Math.round(lerp(y0, y1, i / (n - 1))), 2, 2); };
